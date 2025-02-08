@@ -5,6 +5,7 @@ import { Footer } from '../components/Footer';
 import { Package, Calendar, MapPin, Clock, User, Mail, Phone } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { AdminPageHeader } from '../components/AdminPageHeader';
+import { useToast } from '../hooks/use-toast';
 
 interface RentalDetails {
   id: string;
@@ -35,9 +36,9 @@ interface RentalDetails {
 
 export function RentalDetails() {
   const { id } = useParams();
+  const { toast } = useToast();
   const [rental, setRental] = useState<RentalDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     loadRentalDetails();
@@ -106,7 +107,11 @@ export function RentalDetails() {
       });
     } catch (err) {
       console.error('Error loading rental details:', err);
-      setError('Erro ao carregar detalhes do aluguel');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: err instanceof Error ? err.message : 'Erro ao carregar detalhes do aluguel'
+      });
     } finally {
       setLoading(false);
     }
@@ -130,13 +135,13 @@ export function RentalDetails() {
     );
   }
 
-  if (error || !rental) {
+  if (!rental) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <p className="text-xl text-text mb-4">{error || 'Aluguel não encontrado'}</p>
+            <p className="text-xl text-text mb-4">Aluguel não encontrado</p>
             <a
               href="/rentals"
               className="text-primary hover:underline"

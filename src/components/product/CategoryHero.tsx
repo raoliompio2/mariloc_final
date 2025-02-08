@@ -7,9 +7,9 @@ interface CategoryHeroProps {
 
 export function CategoryHero({ category }: CategoryHeroProps) {
   return (
-    <div className="w-full pt-16 pb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="w-full h-[400px] rounded-3xl overflow-hidden border border-border/40 dark:border-gray-800">
+    <div className="w-full pt-8 pb-8">
+      <div className="container mx-auto px-4">
+        <div className="w-full h-[240px] rounded-3xl overflow-hidden border border-border/40 dark:border-gray-800">
           <div 
             className="w-full h-full bg-cover bg-center relative" 
             style={{

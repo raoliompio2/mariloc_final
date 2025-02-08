@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import type { Category } from '../types/machine';
 import { CategoryEditModal } from '../components/modals/CategoryEditModal';
 import { AdminPageHeader } from '../components/AdminPageHeader';
+import { ConfirmDialog } from '../components/ui/confirm-dialog';
 
 export function CategoryList() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -13,6 +14,8 @@ export function CategoryList() {
   const [error, setError] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
 
   useEffect(() => {
     loadCategories();
@@ -44,20 +47,27 @@ export function CategoryList() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Tem certeza que deseja excluir esta categoria?')) return;
+  const handleDelete = (id: string) => {
+    const category = categories.find(cat => cat.id === id);
+    setCategoryToDelete(category);
+    setDeleteConfirmOpen(true);
+  };
 
+  const confirmDelete = async () => {
     try {
       const { error } = await supabase
         .from('categories')
         .delete()
-        .eq('id', id);
+        .eq('id', categoryToDelete?.id);
 
       if (error) throw error;
       loadCategories();
     } catch (err) {
       console.error('Error deleting category:', err);
       setError('Erro ao excluir categoria');
+    } finally {
+      setDeleteConfirmOpen(false);
+      setCategoryToDelete(null);
     }
   };
 
@@ -148,7 +158,7 @@ export function CategoryList() {
   };
 
   const breadcrumbs = [
-    { label: 'Painel', path: '/landlord-dashboard' },
+    { label: 'Painel', path: '/landlord/dashboard' },
     { label: 'Categorias' }
   ];
 
@@ -216,6 +226,14 @@ export function CategoryList() {
           setShowEditModal(false);
           setSelectedCategory(null);
         }}
+      />
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Excluir Categoria"
+        description="Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita."
+        onConfirm={confirmDelete}
       />
     </div>
   );

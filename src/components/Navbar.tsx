@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Menu, LogOut, Sun, Moon, Package, User, LayoutDashboard, X, ChevronDown, Grid, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -8,6 +8,7 @@ import { setTheme, fetchSystemSettings } from '../store/themeSlice';
 import { fetchCategories } from '../store/categorySlice';
 import ProductSearchCard from './ProductSearchCard';
 import { UserMenu } from './navbar/UserMenu';
+import { MobileMenu } from './navbar/MobileMenu';
 import cn from 'classnames';
 
 const NavbarDropdown = lazy(() => import('./NavbarDropdown'));
@@ -209,51 +210,30 @@ export function Navbar({ className }: NavbarProps) {
     dispatch(setTheme(newTheme));
   };
 
-  if (status === 'loading') {
-    return (
-      <nav className="fixed top-0 left-0 right-0 z-50">
-        <div className="h-16 bg-white dark:bg-gray-900 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-            <div className="flex items-center gap-8">
-              {/* Logo placeholder */}
-              <div className="w-32 h-8 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
-              {/* Menu items placeholder */}
-              <div className="hidden md:flex items-center gap-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="w-24 h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
-                ))}
-              </div>
-            </div>
-            {/* Right side placeholder */}
-            <div className="flex items-center gap-4">
-              {[1, 2].map((i) => (
-                <div key={i} className="w-8 h-8 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse" />
-              ))}
-            </div>
-          </div>
-        </div>
-      </nav>
-    );
-  }
-
   return (
     <nav className={cn("fixed top-0 left-0 right-0 z-50", className)}>
-      <Suspense fallback={null}>
-        <NavbarDropdown
-          showCategories={showCategories}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          filteredProducts={filteredProducts}
-          filteredCategories={filteredCategories}
-          currentSlide={currentSlide}
-          setCurrentSlide={setCurrentSlide}
-          setShowCategories={setShowCategories}
-          itemsPerSlide={itemsPerSlide}
-          menuRef={menuRef}
-          categoriesStatus={categoriesStatus}
-          popularTags={popularTags}
-        />
-      </Suspense>
+      <nav ref={menuRef} className="relative">
+        {showCategories && (
+          <Suspense fallback={<div>Carregando...</div>}>
+            <NavbarDropdown
+              showCategories={showCategories}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              filteredProducts={filteredProducts}
+              filteredCategories={filteredCategories}
+              currentSlide={currentSlide}
+              setCurrentSlide={setCurrentSlide}
+              setShowCategories={setShowCategories}
+              itemsPerSlide={itemsPerSlide}
+              menuRef={menuRef}
+              categoriesStatus={categoriesStatus}
+              popularTags={popularTags}
+              theme={theme}
+              systemSettings={systemSettings}
+            />
+          </Suspense>
+        )}
+      </nav>
 
       {/* Menu Principal - Sempre visível por cima */}
       <div 
@@ -270,19 +250,12 @@ export function Navbar({ className }: NavbarProps) {
       
       <div className="relative max-w-7xl mx-auto px-6 h-28">
         <div className="flex items-center justify-between h-full">
-          {/* Menu Button (Mobile) */}
+          {/* Mobile Menu Button */}
           <button
             onClick={() => setShowMobileMenu(true)}
-            className="p-3 rounded-full hover:bg-opacity-10 hover:bg-white transition-colors md:hidden"
+            className="lg:hidden p-2 -mr-2 text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
           >
-            <Menu 
-              className="h-8 w-8" 
-              style={{ 
-                color: theme === 'dark' 
-                  ? systemSettings.dark_header_text_color 
-                  : systemSettings.light_header_text_color 
-              }} 
-            />
+            <Menu className="h-6 w-6" />
           </button>
 
           {/* Desktop Navigation */}
@@ -320,18 +293,7 @@ export function Navbar({ className }: NavbarProps) {
                   alt="Logo"
                   className="h-[110px] w-auto"
                 />
-              ) : (
-                <span 
-                  className="text-4xl font-bold"
-                  style={{ 
-                    color: theme === 'dark' 
-                      ? systemSettings.dark_header_text_color 
-                      : systemSettings.light_header_text_color 
-                  }}
-                >
-                  Nortec
-                </span>
-              )}
+              ) : null}
             </Link>
           </div>
 
@@ -379,6 +341,15 @@ export function Navbar({ className }: NavbarProps) {
         </div>
       </div>
 
+      <MobileMenu
+        showMobileMenu={showMobileMenu}
+        setShowMobileMenu={setShowMobileMenu}
+        user={user}
+        theme={theme}
+        categories={categories}
+        onLogout={handleLogout}
+      />
+
       <style className="navbar-styles">{`
         @keyframes fadeInUp {
           from {
@@ -391,196 +362,6 @@ export function Navbar({ className }: NavbarProps) {
           }
         }
       `}</style>
-
-      {/* Mobile Menu */}
-      <div
-        className={`fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 z-50 
-        ${showMobileMenu ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-      >
-        <div 
-          className={`fixed inset-y-0 left-0 w-[280px] shadow-xl 
-          transition-transform duration-300 transform ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}`}
-          style={{ 
-            backgroundColor: theme === 'dark' 
-              ? systemSettings.dark_header_color 
-              : systemSettings.light_header_color 
-          }}
-        >
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <span 
-                className="text-lg font-medium"
-                style={{ 
-                  color: theme === 'dark' 
-                    ? systemSettings.dark_header_text_color 
-                    : systemSettings.light_header_text_color 
-                }}
-              >
-                Menu
-              </span>
-              <button
-                onClick={() => setShowMobileMenu(false)}
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-              >
-                <X 
-                  className="h-6 w-6" 
-                  style={{ 
-                    color: theme === 'dark' 
-                      ? systemSettings.dark_header_text_color 
-                      : systemSettings.light_header_text_color 
-                  }} 
-                />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-4">
-                <button
-                  onClick={() => setShowCategories(!showCategories)}
-                  className="flex items-center justify-between w-full px-4 py-3 rounded-lg 
-                  transition-colors duration-200 hover:bg-white/10 mb-4"
-                  style={{ 
-                    color: theme === 'dark' 
-                      ? systemSettings.dark_header_text_color 
-                      : systemSettings.light_header_text_color 
-                  }}
-                >
-                  <div className="flex items-center space-x-3">
-                    <Grid className="h-5 w-5" />
-                    <span className="text-base font-medium">Ver Equipamentos</span>
-                  </div>
-                  <ChevronDown 
-                    className={`h-4 w-4 transition-transform duration-200 ${showCategories ? 'rotate-180' : ''}`}
-                  />
-                </button>
-
-                {showCategories && (
-                  <div className="space-y-2 pl-4">
-                    {filteredCategories.map((category) => (
-                      <Link
-                        key={category.id}
-                        to={`/catalogo-de-produtos/${category.slug}`}
-                        className="flex items-center space-x-3 p-3 rounded-lg
-                        transition-colors duration-200 hover:bg-white/10"
-                        onClick={() => {
-                          setShowCategories(false);
-                          setShowMobileMenu(false);
-                        }}
-                      >
-                        <div className="w-8 h-8 flex items-center justify-center">
-                          <img 
-                            src={category.icon_url} 
-                            alt={category.name}
-                            className="w-6 h-6 object-contain"
-                          />
-                        </div>
-                        <span 
-                          className="text-sm font-medium"
-                          style={{ 
-                            color: theme === 'dark' 
-                              ? systemSettings.dark_header_text_color 
-                              : systemSettings.light_header_text_color 
-                          }}
-                        >
-                          {category.name}
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-
-                {user && (
-                  <div className="mt-6 pt-6 border-t border-white/10">
-                    <div className="px-4 mb-4">
-                      <p 
-                        className="text-base font-medium"
-                        style={{ 
-                          color: theme === 'dark' 
-                            ? systemSettings.dark_header_text_color 
-                            : systemSettings.light_header_text_color 
-                        }}
-                      >
-                        {user.name}
-                      </p>
-                      <p 
-                        className="text-sm opacity-80"
-                        style={{ 
-                          color: theme === 'dark' 
-                            ? systemSettings.dark_header_text_color 
-                            : systemSettings.light_header_text_color 
-                        }}
-                      >
-                        {user.email}
-                      </p>
-                    </div>
-                    
-                    <Link
-                      to={user.role === 'landlord' ? '/landlord-dashboard' : '/client-dashboard'}
-                      className="block px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                      onClick={() => setShowMobileMenu(false)}
-                    >
-                      <LayoutDashboard 
-                        className="h-5 w-5"
-                        style={{ 
-                          color: theme === 'dark' 
-                            ? systemSettings.dark_header_text_color 
-                            : systemSettings.light_header_text_color 
-                        }}
-                      />
-                      <span 
-                        className="text-sm font-medium"
-                        style={{ 
-                          color: theme === 'dark' 
-                            ? systemSettings.dark_header_text_color 
-                            : systemSettings.light_header_text_color 
-                        }}
-                      >
-                        {user.role === 'landlord' ? 'Painel do Proprietário' : 'Meu Painel'}
-                      </span>
-                    </Link>
-                    
-                    <Link
-                      to="/settings"
-                      className="block px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                      onClick={() => setShowMobileMenu(false)}
-                    >
-                      <Package 
-                        className="h-5 w-5"
-                        style={{ 
-                          color: theme === 'dark' 
-                            ? systemSettings.dark_header_text_color 
-                            : systemSettings.light_header_text_color 
-                        }}
-                      />
-                      <span 
-                        className="text-sm font-medium"
-                        style={{ 
-                          color: theme === 'dark' 
-                            ? systemSettings.dark_header_text_color 
-                            : systemSettings.light_header_text_color 
-                        }}
-                      >
-                        Configurações
-                      </span>
-                    </Link>
-
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setShowMobileMenu(false);
-                      }}
-                      className="block w-full text-left text-red-500 hover:bg-red-500/10 transition-colors"
-                    >
-                      <LogOut className="h-5 w-5" />
-                      <span className="text-sm font-medium">Sair</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </nav>
   );
 }

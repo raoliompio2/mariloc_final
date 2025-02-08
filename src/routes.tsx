@@ -27,8 +27,10 @@ import { CompletedReturns } from './pages/CompletedReturns';
 import { ClientReturns } from './pages/ClientReturns';
 import { NotFound } from './pages/NotFound';
 import { TestSettings } from './pages/TestSettings';
-import { LandlordQuotes } from './pages/LandlordQuotes';
 import { useLoading } from './contexts/LoadingContext';
+import { MainLayout } from './layouts/MainLayout';
+import { AuthLayout } from './layouts/AuthLayout';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 export function Routes() {
   const location = useLocation();
@@ -46,33 +48,122 @@ export function Routes() {
 
   return (
     <ReactRoutes>
-      <Route path="/" element={<ProductCatalog />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/client-dashboard" element={<ClientDashboard />} />
-      <Route path="/landlord-dashboard" element={<LandlordDashboard />} />
-      <Route path="/settings" element={<Settings />} />
-      <Route path="/machine/register" element={<MachineRegister />} />
-      <Route path="/machine/edit/:id" element={<MachineEdit />} />
-      <Route path="/machines" element={<MachineList />} />
-      <Route path="/categories" element={<CategoryList />} />
-      <Route path="/quotes" element={<QuoteList />} />
-      <Route path="/catalogo-de-produtos/:categorySlug" element={<CategoryPage />} />
-      <Route path="/catalogo-de-produtos/produto/:slug" element={<ProductDetail />} />
-      <Route path="/catalogo-de-produtos/produto/:slug/orcamento" element={<QuoteRequest />} />
-      <Route path="/accessories" element={<AccessoryList />} />
-      <Route path="/accessory/register" element={<AccessoryRegister />} />
-      <Route path="/accessory/edit/:id" element={<AccessoryEdit />} />
-      <Route path="/test-settings" element={<TestSettings />} />
+      <Route element={<MainLayout />}>
+        {/* Rotas Públicas */}
+        <Route path="/" element={<ProductCatalog />} />
+        <Route path="/catalogo-de-produtos/:categorySlug" element={<CategoryPage />} />
+        <Route path="/catalogo-de-produtos/produto/:slug" element={<ProductDetail />} />
+        <Route path="/quote/request/:slug" element={<QuoteRequest />} />
+        
+        {/* Rotas de Cliente */}
+        <Route path="/client/dashboard" element={
+          <ProtectedRoute requiredRole="client">
+            <ClientDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/client/quotes" element={
+          <ProtectedRoute requiredRole="client">
+            <ClientQuotes />
+          </ProtectedRoute>
+        } />
+        <Route path="/client/rentals" element={
+          <ProtectedRoute requiredRole="client">
+            <ClientRentals />
+          </ProtectedRoute>
+        } />
+        <Route path="/client/returns" element={
+          <ProtectedRoute requiredRole="client">
+            <ClientReturns />
+          </ProtectedRoute>
+        } />
+
+        {/* Rotas de Proprietário */}
+        <Route path="/landlord/dashboard" element={
+          <ProtectedRoute requiredRole="landlord">
+            <LandlordDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/machine/register" element={
+          <ProtectedRoute requiredRole="landlord">
+            <MachineRegister />
+          </ProtectedRoute>
+        } />
+        <Route path="/machine/edit/:id" element={
+          <ProtectedRoute requiredRole="landlord">
+            <MachineEdit />
+          </ProtectedRoute>
+        } />
+        <Route path="/machine/list" element={
+          <ProtectedRoute requiredRole="landlord">
+            <MachineList />
+          </ProtectedRoute>
+        } />
+        <Route path="/category/list" element={
+          <ProtectedRoute requiredRole="landlord">
+            <CategoryList />
+          </ProtectedRoute>
+        } />
+        <Route path="/accessory/list" element={
+          <ProtectedRoute requiredRole="landlord">
+            <AccessoryList />
+          </ProtectedRoute>
+        } />
+        <Route path="/accessory/register" element={
+          <ProtectedRoute requiredRole="landlord">
+            <AccessoryRegister />
+          </ProtectedRoute>
+        } />
+        <Route path="/accessory/edit/:id" element={
+          <ProtectedRoute requiredRole="landlord">
+            <AccessoryEdit />
+          </ProtectedRoute>
+        } />
+        <Route path="/quote/list" element={
+          <ProtectedRoute requiredRole="landlord">
+            <QuoteList />
+          </ProtectedRoute>
+        } />
+        <Route path="/rental/list" element={
+          <ProtectedRoute requiredRole="landlord">
+            <RentalList />
+          </ProtectedRoute>
+        } />
+        <Route path="/rental/:id" element={
+          <ProtectedRoute requiredRole="landlord">
+            <RentalDetails />
+          </ProtectedRoute>
+        } />
+        <Route path="/rental/return/:id" element={
+          <ProtectedRoute requiredRole="landlord">
+            <RentalReturn />
+          </ProtectedRoute>
+        } />
+        <Route path="/completed/returns" element={
+          <ProtectedRoute requiredRole="landlord">
+            <CompletedReturns />
+          </ProtectedRoute>
+        } />
+
+        {/* Rotas que precisam apenas de autenticação */}
+        <Route path="/settings" element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } />
+        <Route path="/test/settings" element={<TestSettings />} />
+      </Route>
+
+      <Route element={<AuthLayout />}>
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+      </Route>
+
       <Route path="*" element={<NotFound />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/client/quotes" element={<ClientQuotes />} />
-      <Route path="/rentals" element={<RentalList />} />
-      <Route path="/client/rentals" element={<ClientRentals />} />
-      <Route path="/rentals/:id/details" element={<RentalDetails />} />
-      <Route path="/rentals/:id/returns" element={<RentalReturn />} />
-      <Route path="/returns/completed" element={<CompletedReturns />} />
-      <Route path="/client/returns" element={<ClientReturns />} />
     </ReactRoutes>
   );
 }

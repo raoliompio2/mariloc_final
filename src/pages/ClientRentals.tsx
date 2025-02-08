@@ -187,18 +187,16 @@ export function ClientRentals() {
     setFilteredRentals(filtered);
   };
 
-  const breadcrumbs = [
-    { label: 'Painel', path: '/client-dashboard' },
-    { label: 'Meus Aluguéis' }
-  ];
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="pt-20">
         <AdminPageHeader
           title="Meus Aluguéis"
-          breadcrumbs={breadcrumbs}
+          breadcrumbs={[
+            { label: 'Painel', path: '/client/dashboard' },
+            { label: 'Aluguéis' }
+          ]}
         />
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="bg-white dark:bg-secondary rounded-xl shadow-lg p-8">
@@ -231,8 +229,7 @@ export function ClientRentals() {
                   <RentalCard
                     key={rental.id}
                     rental={rental}
-                    onApprove={() => {}}
-                    onReject={() => {}}
+                    showActions={false}
                   />
                 ))}
               </div>

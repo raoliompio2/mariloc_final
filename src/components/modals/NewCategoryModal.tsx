@@ -1,109 +1,131 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useToast } from '../../hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 
 interface NewCategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
-  type: 'primary' | 'secondary';
+  onSuccess: (categoryId: string) => void;
 }
 
-export function NewCategoryModal({ isOpen, onClose, onSuccess, type }: NewCategoryModalProps) {
+export function NewCategoryModal({ isOpen, onClose, onSuccess }: NewCategoryModalProps) {
+  const { toast } = useToast();
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
+
+    if (!name.trim()) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Nome da categoria é obrigatório'
+      });
+      return;
+    }
 
     try {
-      const { error: insertError } = await supabase
+      setLoading(true);
+
+      // Verifica se já existe uma categoria com este nome
+      const { data: existing } = await supabase
+        .from('categories')
+        .select('id')
+        .ilike('name', name.trim())
+        .maybeSingle();
+
+      if (existing) {
+        toast({
+          variant: 'destructive',
+          title: 'Erro',
+          description: 'Já existe uma categoria com este nome'
+        });
+        return;
+      }
+
+      // Cria a nova categoria
+      const { data, error } = await supabase
         .from('categories')
         .insert([{ 
-          name,
-          type: type 
-        }]);
+          name: name.trim(),
+          created_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
 
-      if (insertError) throw insertError;
+      if (error) throw error;
 
-      onSuccess();
-      onClose();
-      setName('');
-    } catch (err) {
-      console.error('Error creating category:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao criar categoria');
+      if (data) {
+        toast({
+          variant: 'success',
+          title: 'Categoria Criada',
+          description: 'A categoria foi criada com sucesso!'
+        });
+        onSuccess(data.id);
+        onClose();
+        setName('');
+      }
+    } catch (error) {
+      console.error('Erro ao criar categoria:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: error instanceof Error ? error.message : 'Erro ao criar categoria'
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-text">
-            Nova Categoria {type === 'primary' ? 'Principal' : 'Secundária'}
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-500"
-          >
-            <X className="h-5 w-5" />
-          </button>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <div className="relative">
+          <DialogHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10 pb-4 mb-4 border-b">
+            <DialogTitle>Nova Categoria</DialogTitle>
+            <DialogDescription>
+              Adicione uma nova categoria para suas máquinas
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+            <div className="space-y-2">
+              <label 
+                htmlFor="name" 
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Nome da Categoria
+              </label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ex: Betoneiras"
+                className="w-full"
+              />
+            </div>
+
+            <DialogFooter className="sticky bottom-0 bg-white dark:bg-gray-800 z-10 pt-4 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={loading}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Salvando...' : 'Salvar'}
+              </Button>
+            </DialogFooter>
+          </form>
         </div>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="categoryName" className="block text-sm font-medium text-text mb-2">
-              Nome da Categoria {type === 'primary' ? 'Principal' : 'Secundária'}
-            </label>
-            <input
-              id="categoryName"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md"
-              required
-            />
-          </div>
-
-          <div className="flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
-              disabled={loading}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-primary text-white rounded-md hover:opacity-90 disabled:opacity-50 flex items-center"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Salvando...
-                </>
-              ) : (
-                'Salvar'
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -6,7 +6,9 @@ import { Footer } from '../components/Footer';
 import { AdminPageHeader } from '../components/AdminPageHeader';
 import { RentalCard } from '../components/rentals/RentalCard';
 import { FilterBar } from '../components/common/FilterBar';
+import { ConfirmationModal } from '../components/modals/ConfirmationModal';
 import type { Rental } from '../types/rental';
+import { useToast } from '../hooks/use-toast';
 
 const filterOptions = [
   {
@@ -40,12 +42,22 @@ const filterOptions = [
 ];
 
 export function RentalList() {
+  const { toast } = useToast();
   const [rentals, setRentals] = useState<Rental[]>([]);
   const [filteredRentals, setFilteredRentals] = useState<Rental[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    action: 'approve' | 'reject';
+    rentalId: string;
+  }>({
+    isOpen: false,
+    action: 'approve',
+    rentalId: ''
+  });
 
   useEffect(() => {
     loadRentals();
@@ -112,7 +124,11 @@ export function RentalList() {
       setError('');
     } catch (err) {
       console.error('Error loading rentals:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao carregar aluguéis');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: err instanceof Error ? err.message : 'Erro ao carregar aluguéis'
+      });
     } finally {
       setLoading(false);
     }
@@ -182,9 +198,24 @@ export function RentalList() {
   };
 
   const handleApproveRental = async (rentalId: string) => {
-    const confirmed = window.confirm('Deseja aprovar esta locação?');
-    if (!confirmed) return;
+    setConfirmModal({
+      isOpen: true,
+      action: 'approve',
+      rentalId
+    });
+  };
 
+  const handleRejectRental = async (rentalId: string) => {
+    setConfirmModal({
+      isOpen: true,
+      action: 'reject',
+      rentalId
+    });
+  };
+
+  const handleConfirmAction = async () => {
+    const { action, rentalId } = confirmModal;
+    
     try {
       // First check if rental exists and is still pending
       const { data: rental, error: checkError } = await supabase
@@ -202,58 +233,38 @@ export function RentalList() {
       // Then update the rental
       const { error: updateError } = await supabase
         .from('rentals')
-        .update({
+        .update(action === 'approve' ? {
           status: 'active',
           start_date: new Date().toISOString()
+        } : {
+          status: 'cancelled'
         })
         .eq('id', rentalId);
 
       if (updateError) throw updateError;
       
       await loadRentals();
-      alert('Locação aprovada com sucesso!');
+      toast({
+        variant: 'success',
+        title: action === 'approve' ? 'Locação Aprovada' : 'Locação Rejeitada',
+        description: action === 'approve' 
+          ? 'A locação foi aprovada com sucesso!'
+          : 'A locação foi rejeitada com sucesso!'
+      });
     } catch (err) {
-      console.error('Error approving rental:', err);
-      alert(err instanceof Error ? err.message : 'Erro ao aprovar locação. Por favor, tente novamente.');
-    }
-  };
-
-  const handleRejectRental = async (rentalId: string) => {
-    const confirmed = window.confirm('Deseja rejeitar esta locação?');
-    if (!confirmed) return;
-
-    try {
-      // First check if rental exists and is still pending
-      const { data: rental, error: checkError } = await supabase
-        .from('rentals')
-        .select('status')
-        .eq('id', rentalId)
-        .single();
-
-      if (checkError) throw checkError;
-      if (!rental) throw new Error('Locação não encontrada');
-      if (rental.status !== 'pending') {
-        throw new Error('Esta locação não está mais pendente');
-      }
-
-      // Then update the rental
-      const { error: updateError } = await supabase
-        .from('rentals')
-        .update({ status: 'cancelled' })
-        .eq('id', rentalId);
-
-      if (updateError) throw updateError;
-      
-      await loadRentals();
-      alert('Locação rejeitada com sucesso!');
-    } catch (err) {
-      console.error('Error rejecting rental:', err);
-      alert(err instanceof Error ? err.message : 'Erro ao rejeitar locação. Por favor, tente novamente.');
+      console.error(`Error ${action}ing rental:`, err);
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: err instanceof Error 
+          ? err.message 
+          : `Erro ao ${action === 'approve' ? 'aprovar' : 'rejeitar'} locação. Por favor, tente novamente.`
+      });
     }
   };
 
   const breadcrumbs = [
-    { label: 'Painel', path: '/landlord-dashboard' },
+    { label: 'Painel', path: '/landlord/dashboard' },
     { label: 'Aluguéis' }
   ];
 
@@ -298,6 +309,7 @@ export function RentalList() {
                     rental={rental}
                     onApprove={handleApproveRental}
                     onReject={handleRejectRental}
+                    showActions={true}
                   />
                 ))}
               </div>
@@ -306,6 +318,19 @@ export function RentalList() {
         </div>
       </div>
       <Footer />
+
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={handleConfirmAction}
+        title={confirmModal.action === 'approve' ? 'Aprovar Locação' : 'Rejeitar Locação'}
+        description={confirmModal.action === 'approve' 
+          ? 'Tem certeza que deseja aprovar esta locação? Esta ação não pode ser desfeita.'
+          : 'Tem certeza que deseja rejeitar esta locação? Esta ação não pode ser desfeita.'
+        }
+        confirmText={confirmModal.action === 'approve' ? 'Aprovar' : 'Rejeitar'}
+        variant={confirmModal.action === 'approve' ? 'default' : 'destructive'}
+      />
     </div>
   );
 }

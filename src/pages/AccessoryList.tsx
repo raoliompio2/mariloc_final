@@ -5,12 +5,15 @@ import { AdminPageHeader } from '../components/AdminPageHeader';
 import { Plus, Edit, Trash2, Search, Package } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Accessory } from '../types/accessory';
+import { ConfirmDialog } from '../components/ui/confirm-dialog';
 
 export function AccessoryList() {
   const navigate = useNavigate();
   const [accessories, setAccessories] = useState<Accessory[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [accessoryToDelete, setAccessoryToDelete] = useState(null);
 
   useEffect(() => {
     loadAccessories();
@@ -60,18 +63,24 @@ export function AccessoryList() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Tem certeza que deseja excluir este acessório?')) return;
+    setAccessoryToDelete(accessories.find(accessory => accessory.id === id));
+    setDeleteConfirmOpen(true);
+  };
 
+  const confirmDelete = async () => {
     try {
       const { error } = await supabase
         .from('accessories')
         .delete()
-        .eq('id', id);
+        .eq('id', accessoryToDelete.id);
 
       if (error) throw error;
       loadAccessories();
     } catch (err) {
       console.error('Error deleting accessory:', err);
+    } finally {
+      setDeleteConfirmOpen(false);
+      setAccessoryToDelete(null);
     }
   };
 
@@ -80,7 +89,7 @@ export function AccessoryList() {
   );
 
   const breadcrumbs = [
-    { label: 'Painel', path: '/landlord-dashboard' },
+    { label: 'Painel', path: '/landlord/dashboard' },
     { label: 'Acessórios' }
   ];
 
@@ -212,6 +221,13 @@ export function AccessoryList() {
           </div>
         </div>
       </div>
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Excluir Acessório"
+        description="Tem certeza que deseja excluir este acessório? Esta ação não pode ser desfeita."
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

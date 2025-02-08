@@ -7,9 +7,11 @@ import { supabase } from '../lib/supabase';
 import type { Machine } from '../types/machine';
 import { AdminPageHeader } from '../components/AdminPageHeader';
 import { MachineSelector } from '../components/forms/MachineSelector';
+import { useToast } from '../hooks/use-toast';
 
 export function AccessoryRegister() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -19,7 +21,6 @@ export function AccessoryRegister() {
   const [machines, setMachines] = useState<Machine[]>([]);
   const [selectedMachines, setSelectedMachines] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     loadMachines();
@@ -49,7 +50,11 @@ export function AccessoryRegister() {
       setMachines(transformedData);
     } catch (err) {
       console.error('Error loading machines:', err);
-      setError('Erro ao carregar máquinas');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao carregar máquinas'
+      });
     }
   };
 
@@ -71,7 +76,6 @@ export function AccessoryRegister() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     try {
       if (!mainImage) {
@@ -162,18 +166,28 @@ export function AccessoryRegister() {
 
       await Promise.all(galleryPromises);
 
-      navigate('/accessories');
+      toast({
+        variant: 'success',
+        title: 'Acessório Cadastrado',
+        description: 'O acessório foi cadastrado com sucesso!'
+      });
+
+      navigate('/accessory/list');
     } catch (err) {
       console.error('Error saving accessory:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao salvar acessório');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: err instanceof Error ? err.message : 'Erro ao salvar acessório'
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const breadcrumbs = [
-    { label: 'Painel', path: '/landlord-dashboard' },
-    { label: 'Acessórios', path: '/accessories' },
+    { label: 'Painel', path: '/landlord/dashboard' },
+    { label: 'Acessórios', path: '/accessory/list' },
     { label: 'Novo Acessório' }
   ];
 
@@ -186,12 +200,6 @@ export function AccessoryRegister() {
       />
       <div className="flex-1">
         <div className="max-w-7xl mx-auto px-4 py-8">
-          {error && (
-            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
-              {error}
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="bg-white dark:bg-secondary rounded-lg shadow-md p-6">
             {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -336,7 +344,7 @@ export function AccessoryRegister() {
             <div className="flex justify-end space-x-4">
               <button
                 type="button"
-                onClick={() => navigate('/client/accessories')}
+                onClick={() => navigate('/accessory/list')}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800"
                 disabled={loading}
               >

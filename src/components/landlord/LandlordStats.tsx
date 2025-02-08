@@ -1,4 +1,4 @@
-import { FileText, HourglassIcon, CheckCircle, Package, DollarSign, Truck } from 'lucide-react';
+import { FileText, HourglassIcon, CheckCircle, Package, DollarSign, Truck, TrendingUp } from 'lucide-react';
 import { LandlordStatsCard } from './LandlordStatsCard';
 
 export interface LandlordStatsData {
@@ -7,6 +7,8 @@ export interface LandlordStatsData {
   pendingRentals: number;
   activeRentals: number;
   activeRentalsValue: number;
+  completedRentalsValue: number;
+  answeredQuotesValue: number;
   pendingCollections: number;
 }
 
@@ -15,6 +17,13 @@ interface LandlordStatsProps {
 }
 
 export function LandlordStats({ data }: LandlordStatsProps) {
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
       <LandlordStatsCard
@@ -46,10 +55,27 @@ export function LandlordStats({ data }: LandlordStatsProps) {
       />
 
       <LandlordStatsCard
-        title="Valor em Aluguéis"
-        value={`R$ ${data.activeRentalsValue.toLocaleString('pt-BR')}`}
+        title="Valor em Aluguéis Ativos"
+        value={formatCurrency(data.activeRentalsValue)}
         icon={DollarSign}
+        gradient="from-emerald-500 to-emerald-600"
+        isMonetary
+      />
+
+      <LandlordStatsCard
+        title="Valor em Locações do Mês"
+        value={formatCurrency(data.completedRentalsValue)}
+        icon={TrendingUp}
+        gradient="from-indigo-500 to-indigo-600"
+        isMonetary
+      />
+
+      <LandlordStatsCard
+        title="Valor em Negociação"
+        value={formatCurrency(data.answeredQuotesValue)}
+        icon={HourglassIcon}
         gradient="from-orange-500 to-orange-600"
+        isMonetary
       />
 
       <LandlordStatsCard

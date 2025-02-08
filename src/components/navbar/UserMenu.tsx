@@ -34,22 +34,29 @@ export const UserMenu: React.FC<UserMenuProps> = ({
   const getDashboardLinks = () => {
     const links = [];
 
+    // Link do perfil (comum a todos os usuários)
+    links.push({
+      to: '/profile',
+      icon: <User className="h-4 w-4 mr-3" />,
+      label: 'Meu Perfil'
+    });
+
     // Link do painel específico para o tipo de usuário
     if (user.role === 'landlord') {
       links.push({
-        to: '/landlord-dashboard',
+        to: '/landlord/dashboard',
         icon: <LayoutDashboard className="h-4 w-4 mr-3" />,
         label: 'Painel do Proprietário'
       });
     } else if (user.role === 'admin') {
       links.push({
-        to: '/admin-dashboard',
+        to: '/admin/dashboard',
         icon: <LayoutDashboard className="h-4 w-4 mr-3" />,
         label: 'Painel Administrativo'
       });
     } else {
       links.push({
-        to: '/client-dashboard',
+        to: '/client/dashboard',
         icon: <LayoutDashboard className="h-4 w-4 mr-3" />,
         label: 'Meu Painel'
       });
@@ -85,9 +92,9 @@ export const UserMenu: React.FC<UserMenuProps> = ({
         disabled={isLoggingOut}
       >
         <img
-          src={user.avatar_url || '/placeholder-avatar.png'}
+          src={user.avatar_url || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXVzZXIiPjxwYXRoIGQ9Ik0xOSAyMXYtMmE0IDQgMCAwIDAtNC00SDlhNCA0IDAgMCAwLTQgNHYyIi8+PGNpcmNsZSBjeD0iMTIiIGN5PSI3IiByPSI0Ii8+PC9zdmc+'}
           alt=""
-          className="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-700"
+          className="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800"
         />
         <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
       </button>

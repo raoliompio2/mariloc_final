@@ -6,6 +6,7 @@ import { Plus, Edit, Trash2, Search, Package } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Machine, TechnicalData } from '../types/machine';
 import { AdminPageHeader } from '../components/AdminPageHeader';
+import { ConfirmDialog } from '../components/ui/confirm-dialog';
 
 interface MachineWithTechnicalData extends Machine {
   technical_data?: TechnicalData[];
@@ -16,6 +17,8 @@ export function MachineList() {
   const [machines, setMachines] = useState<MachineWithTechnicalData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [machineToDelete, setMachineToDelete] = useState(null);
 
   useEffect(() => {
     loadMachines();
@@ -65,17 +68,27 @@ export function MachineList() {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir esta máquina?')) {
+    setMachineToDelete({ id });
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
       const { error } = await supabase
         .from('machines')
         .delete()
-        .eq('id', id);
+        .eq('id', machineToDelete.id);
 
       if (error) {
         console.error('Error deleting machine:', error);
       } else {
         loadMachines();
       }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setDeleteConfirmOpen(false);
+      setMachineToDelete(null);
     }
   };
 
@@ -84,7 +97,7 @@ export function MachineList() {
   );
 
   const breadcrumbs = [
-    { label: 'Painel', path: '/landlord-dashboard' },
+    { label: 'Painel', path: '/landlord/dashboard' },
     { label: 'Máquinas' }
   ];
 
@@ -236,6 +249,13 @@ export function MachineList() {
         </div>
       </div>
       <Footer />
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Excluir Máquina"
+        description="Tem certeza que deseja excluir esta máquina? Esta ação não pode ser desfeita."
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

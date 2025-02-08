@@ -112,7 +112,7 @@ export function CompletedReturns() {
   );
 
   const breadcrumbs = [
-    { label: 'Painel', path: '/landlord-dashboard' },
+    { label: 'Painel', path: '/landlord/dashboard' },
     { label: 'Devoluções Finalizadas' }
   ];
 

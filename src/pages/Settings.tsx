@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Navbar } from '../components/Navbar';
-import { Footer } from '../components/Footer';
 import { AdminPageHeader } from '../components/AdminPageHeader';
 import { RootState } from '../store/store';
 import { updateSettings } from '../store/themeSlice';
 import { SystemSettings } from '../services/systemSettings';
-import { toast } from 'react-hot-toast';
+import { useToast } from '../hooks/use-toast';
 import { ThemeSection } from '../components/settings/ThemeSection';
 import { ContactInfo } from '../components/settings/ContactInfo';
 import { QuickLinks } from '../components/settings/QuickLinks';
@@ -16,6 +15,7 @@ import { supabase } from '../lib/supabase';
 
 export function Settings() {
   const dispatch = useDispatch();
+  const { toast } = useToast();
   const systemSettings = useSelector((state: RootState) => state.theme.systemSettings);
   const status = useSelector((state: RootState) => state.theme.status);
   const [isUploading, setIsUploading] = useState(false);
@@ -47,10 +47,18 @@ export function Settings() {
       console.log('Salvando configurações:', localSettings);
       await dispatch(updateSettings(localSettings)).unwrap();
       setHasChanges(false);
-      toast.success('Configurações salvas com sucesso!');
+      toast({
+        variant: 'success',
+        title: 'Configurações Salvas',
+        description: 'Suas configurações foram atualizadas com sucesso!'
+      });
     } catch (error) {
       console.error('Erro ao salvar:', error);
-      toast.error('Erro ao salvar configurações. Tente novamente.');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: error instanceof Error ? error.message : 'Erro ao salvar configurações'
+      });
     }
   };
 
@@ -75,7 +83,11 @@ export function Settings() {
       return publicUrl;
     } catch (error) {
       console.error('Erro ao fazer upload:', error);
-      toast.error('Erro ao fazer upload da imagem');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: error instanceof Error ? error.message : 'Erro ao fazer upload da imagem'
+      });
       return null;
     } finally {
       setIsUploading(false);
@@ -97,7 +109,7 @@ export function Settings() {
   };
 
   const breadcrumbs = [
-    { label: 'Painel', path: '/landlord-dashboard' },
+    { label: 'Painel', path: '/landlord/dashboard' },
     { label: 'Configurações' }
   ];
 
@@ -183,7 +195,6 @@ export function Settings() {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

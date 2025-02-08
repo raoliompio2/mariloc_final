@@ -7,93 +7,145 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Variáveis do Supabase não configuradas!');
 }
 
+// Cache configuration
+const CACHE_PREFIX = 'app_cache_';
+const CACHE_VERSION = '1.0';
+
+// Cache management functions
+export const clearAppCache = () => {
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key?.startsWith(CACHE_PREFIX)) {
+      localStorage.removeItem(key);
+    }
+  }
+};
+
+export const getCacheKey = (key: string) => `${CACHE_PREFIX}${CACHE_VERSION}_${key}`;
+
+export const getFromCache = <T>(key: string): T | null => {
+  const cacheKey = getCacheKey(key);
+  const cached = localStorage.getItem(cacheKey);
+  if (!cached) return null;
+
+  try {
+    const { value, expiry } = JSON.parse(cached);
+    if (expiry && expiry < Date.now()) {
+      localStorage.removeItem(cacheKey);
+      return null;
+    }
+    return value;
+  } catch {
+    return null;
+  }
+};
+
+export const setInCache = (key: string, value: any, ttlMinutes = 5) => {
+  const cacheKey = getCacheKey(key);
+  const expiry = Date.now() + (ttlMinutes * 60 * 1000);
+  localStorage.setItem(cacheKey, JSON.stringify({ value, expiry }));
+};
+
 // Create Supabase client with retries and better error handling
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    storage: {
+      getItem: async (key: string) => {
+        const value = getFromCache(key);
+        return value ? JSON.stringify(value) : null;
+      },
+      setItem: async (key: string, value: string) => {
+        try {
+          const parsed = JSON.parse(value);
+          setInCache(key, parsed);
+        } catch {
+          setInCache(key, value);
+        }
+      },
+      removeItem: async (key: string) => {
+        const cacheKey = getCacheKey(key);
+        localStorage.removeItem(cacheKey);
+      }
+    }
   },
   global: {
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
-    },
-    fetch: (...args) => {
-      return fetch(...args).catch(() => {
-        throw new Error('Failed to connect to Supabase. Please check your internet connection and try again.');
-      });
     }
+  },
+  db: {
+    schema: 'public'
   }
 });
 
 // Helper function to check if Supabase is connected
-export const checkSupabaseConnection = async () => {
+export async function checkSupabaseConnection() {
   try {
     const { data, error } = await supabase
-      .from('categories')
+      .from('machines')
       .select('count')
       .limit(1)
       .single();
 
     if (error) {
-      console.error('Supabase connection error:', error);
+      console.error('Erro ao conectar com Supabase:', error);
       return false;
     }
+
+    console.log('Conexão com Supabase estabelecida com sucesso');
     return true;
-  } catch (err) {
-    console.error('Supabase connection error:', err);
+  } catch (error) {
+    console.error('Erro ao tentar conectar com Supabase:', error);
     return false;
   }
-};
+}
+
+// Teste inicial de conexão
+checkSupabaseConnection().then(isConnected => {
+  if (!isConnected) {
+    console.error('Falha ao estabelecer conexão inicial com Supabase');
+  }
+});
 
 // Helper function to handle Supabase errors
-export const handleSupabaseError = (error: any): string => {
-  if (!error) {
-    return 'Ocorreu um erro desconhecido. Por favor, tente novamente.';
-  }
-
-  // Log error for debugging
-  console.error('Supabase error:', error);
+export function handleSupabaseError(error: any): string {
+  console.error('Erro Supabase detalhado:', error);
   
-  // Handle network errors
-  if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
-    return 'Erro de conexão. Por favor, verifique sua conexão com a internet e tente novamente.';
+  if (error?.message?.includes('JWT')) {
+    clearAppCache(); // Limpar cache em caso de erro de autenticação
+    return 'Erro de autenticação. Por favor, faça login novamente.';
   }
   
-  // Handle authentication errors
-  if (error.message?.includes('JWT')) {
-    return 'Sua sessão expirou. Por favor, faça login novamente.';
+  if (error?.message?.includes('network')) {
+    return 'Erro de conexão. Verifique sua internet.';
   }
 
-  // Handle common database errors
-  if (error.code === '42501') {
-    return 'Você não tem permissão para realizar esta ação.';
-  }
-  
-  if (error.code === '23514') {
-    return 'Dados inválidos. Por favor, verifique os campos e tente novamente.';
+  if (error?.code === 'PGRST204') {
+    return 'Erro no esquema do banco de dados. Entre em contato com o suporte.';
   }
 
-  if (error.code === '23503') {
-    return 'Não foi possível completar a ação pois há dados relacionados.';
-  }
-
-  if (error.code === 'PGRST301') {
-    return 'Erro de permissão. Você não tem autorização para realizar esta ação.';
-  }
-
-  // Return original error message if available, otherwise generic message
-  return error.message || 'Ocorreu um erro. Por favor, tente novamente.';
-};
+  return error?.message || 'Ocorreu um erro inesperado';
+}
 
 // Helper function to check authentication
-export const checkAuth = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  
-  if (error || !user) {
-    throw new Error('Você precisa estar logado para realizar esta ação.');
+export async function checkAuth() {
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error) {
+      console.error('Erro ao verificar autenticação:', error);
+      clearAppCache(); // Limpar cache em caso de erro de autenticação
+      return null;
+    }
+    
+    return user;
+  } catch (error) {
+    console.error('Erro ao verificar autenticação:', error);
+    clearAppCache(); // Limpar cache em caso de erro de autenticação
+    return null;
   }
-  
-  return user;
-};
+}

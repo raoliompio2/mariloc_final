@@ -11,6 +11,7 @@ import { QuoteCard } from '../components/quotes/QuoteCard';
 import { FilterBar } from '../components/common/FilterBar';
 import { handleSupabaseError } from '../lib/supabase';
 import type { Quote } from '../types/quote';
+import { useToast } from '../hooks/use-toast';
 
 const filterOptions = [
   {
@@ -36,6 +37,7 @@ const filterOptions = [
 
 export function ClientQuotes() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [filteredQuotes, setFilteredQuotes] = useState<Quote[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -198,11 +200,19 @@ export function ClientQuotes() {
 
   const handleApproveQuote = async (quote: Quote) => {
     if (quote.status !== 'answered') {
-      alert('Este orçamento ainda não foi respondido pelo proprietário');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Este orçamento ainda não foi respondido pelo proprietário'
+      });
       return;
     }
     if (!quote.responsePrice) {
-      alert('Este orçamento não possui um valor definido');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Este orçamento não possui um valor definido'
+      });
       return;
     }
 
@@ -226,7 +236,7 @@ export function ClientQuotes() {
       if (!rental) throw new Error('Erro ao criar aluguel');
 
       // Add accessories if any
-      if (quote.accessories && quote.accessories.length > 0) {
+      if (quote.accessories?.length) {
         const accessoryRelations = quote.accessories.map(accessory => ({
           rental_id: rental.id,
           accessory_id: accessory.id
@@ -239,33 +249,21 @@ export function ClientQuotes() {
         if (accessoryError) throw accessoryError;
       }
 
-      // Update quote status to approved
-      const { error: quoteError } = await supabase
-        .from('quotes')
-        .update({
-          status: 'approved',
-          approved_at: new Date().toISOString()
-        })
-        .eq('id', quote.id);
-
-      if (quoteError) throw quoteError;
-
-      // Atualiza a lista local
-      const updatedQuotes = quotes.map(q =>
-        q.id === quote.id
-          ? { ...q, status: 'approved', approvedAt: new Date().toISOString() }
-          : q
-      );
-      setQuotes(updatedQuotes);
-      applyFilters(searchQuery, activeFilters);
-
       // Redireciona para a página de aluguéis
-      navigate('/client-rentals');
-      alert('Orçamento aprovado com sucesso! Você será redirecionado para seus aluguéis.');
+      toast({
+        variant: 'success',
+        title: 'Orçamento Aprovado',
+        description: 'O orçamento foi aprovado com sucesso! Você será redirecionado para seus aluguéis.'
+      });
+      navigate('/client/rentals');
 
     } catch (err) {
       console.error('Error approving quote:', err);
-      alert('Erro ao aprovar orçamento. Por favor, tente novamente.');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao aprovar orçamento. Por favor, tente novamente.'
+      });
     }
   };
 
@@ -276,8 +274,8 @@ export function ClientQuotes() {
         <AdminPageHeader
           title="Minhas Cotações"
           breadcrumbs={[
-            { label: 'Painel', path: '/client-dashboard' },
-            { label: 'Minhas Cotações' }
+            { label: 'Painel', path: '/client/dashboard' },
+            { label: 'Orçamentos' }
           ]}
         />
         <div className="max-w-7xl mx-auto px-4 py-8">
@@ -312,7 +310,7 @@ export function ClientQuotes() {
                 description={searchQuery ? 'Tente ajustar sua busca.' : 'Que tal solicitar um orçamento?'}
                 action={
                   <a
-                    href="/aluguel-de-equipamentos"
+                    href="/"
                     className="inline-flex items-center px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors"
                   >
                     <Package className="h-5 w-5 mr-2" />

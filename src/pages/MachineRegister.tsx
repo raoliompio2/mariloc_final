@@ -1,48 +1,353 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Upload, Plus } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { NewCategoryModal } from '../components/modals/NewCategoryModal';
 import { supabase } from '../lib/supabase';
+import { useUser } from '../hooks/useUser';
+import { useMachineForm } from '../hooks/useMachineForm';
+import { useToast } from '../hooks/use-toast';
 import type { Category } from '../types/machine';
-
-interface TechnicalDataInput {
-  label: string;
-  value: string;
-}
 
 interface CategoryModalState {
   show: boolean;
   type: 'primary' | 'secondary';
 }
 
+// Components
+const BasicInformation: React.FC<{
+  machineName: string;
+  setMachineName: (value: string) => void;
+  machineDescription: string;
+  setMachineDescription: (value: string) => void;
+}> = ({ machineName, setMachineName, machineDescription, setMachineDescription }) => (
+  <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <h2 className="text-2xl font-bold text-gray-800 mb-6">Informações Básicas</h2>
+    
+    <div className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Nome da Máquina</label>
+        <input
+          type="text"
+          value={machineName}
+          onChange={(e) => setMachineName(e.target.value)}
+          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          required
+          placeholder="Digite o nome da máquina"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+        <textarea
+          value={machineDescription}
+          onChange={(e) => setMachineDescription(e.target.value)}
+          rows={4}
+          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          placeholder="Descreva as características principais da máquina"
+        />
+      </div>
+    </div>
+  </div>
+);
+
+const CategorySelection: React.FC<{
+  categories: Category[];
+  selectedCategory: string;
+  setSelectedCategory: (value: string) => void;
+  selectedSecondaryCategory: string;
+  setSelectedSecondaryCategory: (value: string) => void;
+  onNewCategory: (type: 'primary' | 'secondary') => void;
+}> = ({
+  categories,
+  selectedCategory,
+  setSelectedCategory,
+  selectedSecondaryCategory,
+  setSelectedSecondaryCategory,
+  onNewCategory
+}) => (
+  <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <h2 className="text-2xl font-bold text-gray-800 mb-6">Categorias</h2>
+    
+    <div className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Categoria Principal</label>
+        <div className="flex gap-3">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            required
+          >
+            <option value="">Selecione uma categoria</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => onNewCategory('primary')}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 flex items-center justify-center"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Categoria Secundária</label>
+        <div className="flex gap-3">
+          <select
+            value={selectedSecondaryCategory}
+            onChange={(e) => setSelectedSecondaryCategory(e.target.value)}
+            className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          >
+            <option value="">Selecione uma categoria</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => onNewCategory('secondary')}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 flex items-center justify-center"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const TechnicalDataSection: React.FC<{
+  title: string;
+  data: Array<{ label: string; value: string }>;
+  onDataChange: (index: number, field: 'label' | 'value', value: string) => void;
+  onRemove: (index: number) => void;
+  onAdd: () => void;
+  maxItems?: number;
+}> = ({ title, data, onDataChange, onRemove, onAdd, maxItems }) => (
+  <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <h2 className="text-2xl font-bold text-gray-800 mb-6">{title}</h2>
+    <div className="space-y-4">
+      {data.map((item, index) => (
+        <div key={index} className="flex gap-3 items-center">
+          <input
+            type="text"
+            placeholder="Rótulo"
+            value={item.label}
+            onChange={(e) => onDataChange(index, 'label', e.target.value)}
+            className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          />
+          <input
+            type="text"
+            placeholder="Valor"
+            value={item.value}
+            onChange={(e) => onDataChange(index, 'value', e.target.value)}
+            className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          />
+          <button
+            type="button"
+            onClick={() => onRemove(index)}
+            className="p-3 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      ))}
+      {(!maxItems || data.length < maxItems) && (
+        <button
+          type="button"
+          onClick={onAdd}
+          className="mt-4 w-full px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 active:bg-green-700 transition-colors duration-200 flex items-center justify-center gap-2"
+        >
+          <Plus className="w-5 h-5" />
+          <span>Adicionar {title}</span>
+        </button>
+      )}
+    </div>
+  </div>
+);
+
+const ImageUpload: React.FC<{
+  mainImageUrl: string;
+  handleMainImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  galleryImageUrls: string[];
+  handleGalleryImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  removeGalleryImage: (index: number) => void;
+  onMainImageRemove: () => void;
+}> = ({
+  mainImageUrl,
+  handleMainImageChange,
+  galleryImageUrls,
+  handleGalleryImageChange,
+  removeGalleryImage,
+  onMainImageRemove
+}) => (
+  <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <h2 className="text-2xl font-bold text-gray-800 mb-6">Imagens</h2>
+    
+    <div className="space-y-8">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-4">Imagem Principal</label>
+        <div className="flex items-center gap-6">
+          {mainImageUrl && (
+            <div className="relative group">
+              <img
+                src={mainImageUrl}
+                alt="Preview"
+                className="w-40 h-40 object-cover rounded-xl shadow-md"
+              />
+              <button
+                type="button"
+                onClick={onMainImageRemove}
+                className="absolute -top-2 -right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-200 opacity-0 group-hover:opacity-100"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          <label className="cursor-pointer group">
+            <div className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 transition-colors duration-200 bg-gray-50 group-hover:bg-gray-100">
+              <Upload className="w-8 h-8 text-gray-400 group-hover:text-blue-500 transition-colors duration-200" />
+              <span className="mt-2 text-sm text-gray-500 group-hover:text-blue-500 transition-colors duration-200">
+                Clique para upload
+              </span>
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleMainImageChange}
+              className="hidden"
+            />
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-4">Galeria de Imagens</label>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {galleryImageUrls.map((url, index) => (
+            <div key={index} className="relative group">
+              <img
+                src={url}
+                alt={`Gallery ${index + 1}`}
+                className="w-full h-40 object-cover rounded-xl shadow-md"
+              />
+              <button
+                type="button"
+                onClick={() => removeGalleryImage(index)}
+                className="absolute -top-2 -right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-200 opacity-0 group-hover:opacity-100"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+          <label className="cursor-pointer group">
+            <div className="flex flex-col items-center justify-center h-40 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 transition-colors duration-200 bg-gray-50 group-hover:bg-gray-100">
+              <Upload className="w-8 h-8 text-gray-400 group-hover:text-blue-500 transition-colors duration-200" />
+              <span className="mt-2 text-sm text-gray-500 group-hover:text-blue-500 transition-colors duration-200">
+                Adicionar imagens
+              </span>
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleGalleryImageChange}
+              multiple
+              className="hidden"
+            />
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 export function MachineRegister() {
   const navigate = useNavigate();
-  const [machineName, setMachineName] = useState('');
-  const [machineDescription, setMachineDescription] = useState('');
-  const [highlightData, setHighlightData] = useState<TechnicalDataInput[]>([
-    { label: '', value: '' }
-  ]);
-  const [otherData, setOtherData] = useState<TechnicalDataInput[]>([
-    { label: '', value: '' }
-  ]);
-  const [mainImage, setMainImage] = useState<File | null>(null);
-  const [galleryImages, setGalleryImages] = useState<File[]>([]);
+  const { user, loading: userLoading } = useUser();
+  const { toast } = useToast();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedSecondaryCategory, setSelectedSecondaryCategory] = useState('');
   const [showNewCategoryModal, setShowNewCategoryModal] = useState<CategoryModalState>({
     show: false,
     type: 'primary'
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+
+  const {
+    loading,
+    error,
+    machineName,
+    setMachineName,
+    machineDescription,
+    setMachineDescription,
+    selectedCategory,
+    setSelectedCategory,
+    selectedSecondaryCategory,
+    setSelectedSecondaryCategory,
+    highlightData,
+    setHighlightData,
+    otherData,
+    setOtherData,
+    mainImageUrl,
+    handleMainImageChange,
+    galleryImageUrls,
+    handleGalleryImageChange,
+    removeGalleryImage,
+    addHighlightData,
+    addOtherData,
+    removeHighlightData,
+    removeOtherData,
+    handleSubmit
+  } = useMachineForm({
+    onSuccess: () => {
+      navigate('/machine/list');
+      toast({
+        variant: 'success',
+        title: 'Máquina Cadastrada',
+        description: 'A máquina foi cadastrada com sucesso!'
+      });
+    }
+  });
 
   useEffect(() => {
-    loadCategories();
-  }, []);
+    if (!userLoading) {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+
+      const checkUserRole = async () => {
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+          if (profileError) throw profileError;
+          
+          if (profile?.role !== 'landlord') {
+            navigate('/');
+            return;
+          }
+
+          loadCategories();
+        } catch (err) {
+          console.error('Erro ao verificar perfil:', err);
+          navigate('/');
+        }
+      };
+
+      checkUserRole();
+    }
+  }, [user, userLoading, navigate]);
 
   const loadCategories = async () => {
     try {
@@ -55,543 +360,129 @@ export function MachineRegister() {
       setCategories(data || []);
     } catch (err) {
       console.error('Error loading categories:', err);
-      setError('Erro ao carregar categorias');
-    }
-  };
-
-  const handleTechnicalDataChange = (
-    index: number,
-    field: 'label' | 'value',
-    value: string,
-    isHighlight: boolean
-  ) => {
-    const dataArray = isHighlight ? highlightData : otherData;
-    const setDataArray = isHighlight ? setHighlightData : setOtherData;
-    
-    const newData = [...dataArray];
-    newData[index] = { ...newData[index], [field]: value };
-    setDataArray(newData);
-  };
-
-  const addTechnicalData = (isHighlight: boolean) => {
-    if (isHighlight) {
-      setHighlightData([...highlightData, { label: '', value: '' }]);
-    } else {
-      setOtherData([...otherData, { label: '', value: '' }]);
-    }
-  };
-
-  const removeTechnicalData = (index: number, isHighlight: boolean) => {
-    if (isHighlight) {
-      setHighlightData(highlightData.filter((_, i) => i !== index));
-    } else {
-      setOtherData(otherData.filter((_, i) => i !== index));
-    }
-  };
-
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, isMain: boolean) => {
-    const files = e.target.files;
-    if (!files) return;
-
-    // Converter para PNG se for WebP
-    const convertToPng = async (file: File): Promise<File> => {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          
-          const ctx = canvas.getContext('2d');
-          if (!ctx) {
-            reject(new Error('Failed to get canvas context'));
-            return;
-          }
-          
-          ctx.drawImage(img, 0, 0);
-          canvas.toBlob((blob) => {
-            if (blob) {
-              const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".png", {
-                type: 'image/png'
-              });
-              resolve(newFile);
-            } else {
-              reject(new Error('Failed to convert image'));
-            }
-          }, 'image/png');
-        };
-        img.onerror = () => reject(new Error('Failed to load image'));
-        img.src = URL.createObjectURL(file);
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao carregar categorias'
       });
-    };
-
-    try {
-      if (isMain) {
-        const file = files[0];
-        const processedFile = file.type === 'image/webp' ? await convertToPng(file) : file;
-        setMainImage(processedFile);
-      } else {
-        const processedFiles = await Promise.all(
-          Array.from(files).map(async (file) => 
-            file.type === 'image/webp' ? await convertToPng(file) : file
-          )
-        );
-        setGalleryImages(prev => [...prev, ...processedFiles]);
-      }
-    } catch (error) {
-      console.error('Error processing image:', error);
-      alert('Erro ao processar imagem. Tente outro formato como PNG ou JPEG.');
     }
   };
 
-  const removeGalleryImage = (index: number) => {
-    setGalleryImages(galleryImages.filter((_, i) => i !== index));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-    setSubmitting(true);
-
-    try {
-      if (!machineName.trim()) {
-        setError('O nome da máquina é obrigatório');
-        setSubmitting(false);
-        return;
-      }
-
-      if (!mainImage) {
-        throw new Error('Imagem principal é obrigatória');
-      }
-
-      // Upload da imagem principal
-      const mainImagePath = `${Date.now()}-${mainImage.name}`;
-      const mainImageBuffer = await mainImage.arrayBuffer();
-      const { error: uploadError } = await supabase.storage
-        .from('machine-images')
-        .upload(mainImagePath, mainImageBuffer, {
-          contentType: mainImage.type
+    if (user) {
+      try {
+        await handleSubmit(user.id);
+      } catch (err) {
+        console.error('Error:', err);
+        toast({
+          variant: 'destructive',
+          title: 'Erro',
+          description: err instanceof Error ? err.message : 'Erro ao cadastrar máquina'
         });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl: mainImageUrl } } = supabase.storage
-        .from('machine-images')
-        .getPublicUrl(mainImagePath);
-
-      // Obter o usuário atual
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
-      console.log('Creating machine with name:', machineName);
-
-      // Inserir a máquina
-      const { data: machineData, error: machineError } = await supabase
-        .from('machines')
-        .insert([
-          {
-            name: machineName.trim(),
-            description: machineDescription,
-            main_image_url: mainImageUrl,
-            category_id: selectedCategory,
-            secondary_category_id: selectedSecondaryCategory || null,
-            owner_id: user.id
-          }
-        ])
-        .select()
-        .single();
-
-      if (machineError) {
-        console.error('Error creating machine:', machineError);
-        throw machineError;
       }
-      if (!machineData) throw new Error('Erro ao criar máquina');
-
-      console.log('Created machine:', machineData);
-
-      // Upload e registro das imagens da galeria
-      const galleryPromises = galleryImages.map(async (file) => {
-        const path = `${Date.now()}-${file.name}`;
-        const fileBuffer = await file.arrayBuffer();
-        const { error: galleryUploadError } = await supabase.storage
-          .from('machine-images')
-          .upload(path, fileBuffer, {
-            contentType: file.type
-          });
-
-        if (galleryUploadError) throw galleryUploadError;
-
-        const { data: { publicUrl: galleryUrl } } = supabase.storage
-          .from('machine-images')
-          .getPublicUrl(path);
-        
-        return supabase
-          .from('machine_images')
-          .insert([
-            {
-              machine_id: machineData.id,
-              image_url: galleryUrl,
-              is_main: false
-            }
-          ]);
-      });
-
-      await Promise.all(galleryPromises);
-
-      // Inserir dados técnicos
-      const technicalDataToInsert = [
-        ...highlightData.filter(data => data.label && data.value).map(data => ({
-          machine_id: machineData.id,
-          label: data.label,
-          value: data.value,
-          is_highlight: true
-        })),
-        ...otherData.filter(data => data.label && data.value).map(data => ({
-          machine_id: machineData.id,
-          label: data.label,
-          value: data.value,
-          is_highlight: false
-        }))
-      ];
-
-      if (technicalDataToInsert.length > 0) {
-        const { error: technicalDataError } = await supabase
-          .from('technical_data')
-          .insert(technicalDataToInsert);
-
-        if (technicalDataError) throw technicalDataError;
-      }
-
-      // Redirecionar para a lista de máquinas
-      navigate('/machines');
-    } catch (err) {
-      console.error('Error saving machine:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao salvar máquina');
-    } finally {
-      setLoading(false);
-      setSubmitting(false);
     }
   };
+
+  if (userLoading) {
+    return <div>Carregando...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gray-100">
       <Navbar />
-      <div className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold text-text">
-              Cadastrar Nova Máquina
-            </h1>
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Cadastrar Nova Máquina</h1>
+        
+        <form onSubmit={handleFormSubmit} className="space-y-6">
+          <BasicInformation
+            machineName={machineName}
+            setMachineName={setMachineName}
+            machineDescription={machineDescription}
+            setMachineDescription={setMachineDescription}
+          />
+
+          <CategorySelection
+            categories={categories}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            selectedSecondaryCategory={selectedSecondaryCategory}
+            setSelectedSecondaryCategory={setSelectedSecondaryCategory}
+            onNewCategory={(type) => setShowNewCategoryModal({ show: true, type })}
+          />
+
+          <TechnicalDataSection
+            title="Dados Técnicos em Destaque"
+            data={highlightData}
+            onDataChange={(index, field, value) => {
+              const newData = [...highlightData];
+              newData[index] = { ...newData[index], [field]: value };
+              setHighlightData(newData);
+            }}
+            onRemove={removeHighlightData}
+            onAdd={addHighlightData}
+            maxItems={5}
+          />
+
+          <TechnicalDataSection
+            title="Outros Dados Técnicos"
+            data={otherData}
+            onDataChange={(index, field, value) => {
+              const newData = [...otherData];
+              newData[index] = { ...newData[index], [field]: value };
+              setOtherData(newData);
+            }}
+            onRemove={removeOtherData}
+            onAdd={addOtherData}
+          />
+
+          <ImageUpload
+            mainImageUrl={mainImageUrl}
+            handleMainImageChange={handleMainImageChange}
+            galleryImageUrls={galleryImageUrls}
+            handleGalleryImageChange={handleGalleryImageChange}
+            removeGalleryImage={removeGalleryImage}
+            onMainImageRemove={() => {
+              setMachineName('');
+              setMainImageUrl('');
+            }}
+          />
+
+          <div className="flex justify-end gap-4 sticky bottom-0 bg-white p-4 rounded-xl shadow-lg">
             <button
-              onClick={() => navigate('/machines')}
-              className="px-4 py-2 text-text hover:text-primary transition-colors duration-200"
+              type="button"
+              onClick={() => navigate('/machine/list')}
+              className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200"
             >
-              Voltar
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            >
+              {loading ? 'Salvando...' : 'Salvar'}
             </button>
           </div>
-
-          {error && (
-            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="bg-white dark:bg-secondary rounded-lg shadow-md p-6">
-            {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div>
-                <label htmlFor="machineName" className="block text-sm font-medium text-text mb-2">
-                  Nome da Máquina
-                </label>
-                <input
-                  id="machineName"
-                  type="text"
-                  value={machineName}
-                  onChange={(e) => setMachineName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="machineDescription" className="block text-sm font-medium text-text mb-2">
-                  Descrição
-                </label>
-                <textarea
-                  id="machineDescription"
-                  value={machineDescription}
-                  onChange={(e) => setMachineDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  rows={3}
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Categories */}
-            <div className="mb-8">
-              <h3 className="text-lg font-medium text-text mb-4">
-                Categorias
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="category" className="block text-sm font-medium text-text mb-2">
-                    Categoria Principal
-                  </label>
-                  <div className="flex gap-2">
-                    <select
-                      id="category"
-                      value={selectedCategory}
-                      onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
-                      required
-                    >
-                      <option value="">Selecione uma categoria</option>
-                      {categories
-                        .filter(cat => cat.type === 'primary')
-                        .map((category) => (
-                          <option key={category.id} value={category.id}>
-                            {category.name}
-                          </option>
-                        ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={() => setShowNewCategoryModal({ show: true, type: 'primary' })}
-                      className="flex items-center px-3 py-2 text-primary hover:bg-primary hover:bg-opacity-10 rounded-md"
-                    >
-                      <Plus className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label htmlFor="secondaryCategory" className="block text-sm font-medium text-text mb-2">
-                    Categoria Secundária
-                  </label>
-                  <div className="flex gap-2">
-                    <select
-                      id="secondaryCategory"
-                      value={selectedSecondaryCategory}
-                      onChange={(e) => setSelectedSecondaryCategory(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
-                    >
-                      <option value="">Selecione uma categoria</option>
-                      {categories
-                        .filter(cat => cat.type === 'secondary')
-                        .map((category) => (
-                          <option key={category.id} value={category.id}>
-                            {category.name}
-                          </option>
-                        ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={() => setShowNewCategoryModal({ show: true, type: 'secondary' })}
-                      className="flex items-center px-3 py-2 text-primary hover:bg-primary hover:bg-opacity-10 rounded-md"
-                    >
-                      <Plus className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Technical Data */}
-            <div className="mb-8">
-              <h3 className="text-lg font-medium text-text mb-4">
-                Dados Técnicos em Destaque
-              </h3>
-              {highlightData.map((data, index) => (
-                <div key={index} className="flex gap-4 mb-4">
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      placeholder="Informação"
-                      value={data.label}
-                      onChange={(e) => handleTechnicalDataChange(index, 'label', e.target.value, true)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      placeholder="Valor"
-                      value={data.value}
-                      onChange={(e) => handleTechnicalDataChange(index, 'value', e.target.value, true)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeTechnicalData(index, true)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => addTechnicalData(true)}
-                className="flex items-center text-primary hover:opacity-80"
-              >
-                <Plus className="h-5 w-5 mr-1" />
-                Adicionar Dado Técnico
-              </button>
-            </div>
-
-            <div className="mb-8">
-              <h3 className="text-lg font-medium text-text mb-4">
-                Outros Dados Técnicos
-              </h3>
-              {otherData.map((data, index) => (
-                <div key={index} className="flex gap-4 mb-4">
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      placeholder="Informação"
-                      value={data.label}
-                      onChange={(e) => handleTechnicalDataChange(index, 'label', e.target.value, false)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      placeholder="Valor"
-                      value={data.value}
-                      onChange={(e) => handleTechnicalDataChange(index, 'value', e.target.value, false)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeTechnicalData(index, false)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => addTechnicalData(false)}
-                className="flex items-center text-primary hover:opacity-80"
-              >
-                <Plus className="h-5 w-5 mr-1" />
-                Adicionar Dado Técnico
-              </button>
-            </div>
-
-            {/* Images */}
-            <div className="mb-8">
-              <h3 className="text-lg font-medium text-text mb-4">
-                Imagens
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-text mb-2">
-                    Imagem Principal
-                  </label>
-                  <label className="relative flex items-center justify-center w-full h-32 px-4 transition bg-white border-2 border-gray-300 border-dashed rounded-md appearance-none cursor-pointer hover:border-gray-400 focus:outline-none">
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      onChange={(e) => handleImageChange(e, true)}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      required
-                    />
-                    {mainImage ? (
-                      <img
-                        src={URL.createObjectURL(mainImage)}
-                        alt="Preview"
-                        className="h-full object-contain"
-                      />
-                    ) : (
-                      <span className="flex items-center space-x-2">
-                        <Upload className="w-6 h-6 text-gray-600" />
-                        <span className="font-medium text-gray-600">
-                          Selecionar imagem
-                        </span>
-                      </span>
-                    )}
-                  </label>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text mb-2">
-                    Galeria de Imagens
-                  </label>
-                  <div className="grid grid-cols-2 gap-4">
-                    {galleryImages.map((image, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={URL.createObjectURL(image)}
-                          alt={`Gallery ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-md"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeGalleryImage(index)}
-                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
-                    <label className="relative flex items-center justify-center w-full h-32 px-4 transition bg-white border-2 border-gray-300 border-dashed rounded-md appearance-none cursor-pointer hover:border-gray-400 focus:outline-none">
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        multiple
-                        onChange={(e) => handleImageChange(e, false)}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      />
-                      <Upload className="w-6 h-6 text-gray-600" />
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Submit Buttons */}
-            <div className="flex justify-end space-x-4">
-              <button
-                type="button"
-                onClick={() => navigate('/machines')}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                disabled={loading}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-primary text-white rounded-md hover:opacity-90 disabled:opacity-50 flex items-center"
-                disabled={loading || submitting}
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Salvando...
-                  </>
-                ) : (
-                  'Salvar Máquina'
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
+        </form>
       </div>
+      
+      {showNewCategoryModal.show && (
+        <NewCategoryModal
+          type={showNewCategoryModal.type}
+          onClose={() => setShowNewCategoryModal({ show: false, type: 'primary' })}
+          onSuccess={() => {
+            setShowNewCategoryModal({ show: false, type: 'primary' });
+            loadCategories();
+          }}
+        />
+      )}
+      
       <Footer />
-
-      <NewCategoryModal
-        isOpen={showNewCategoryModal.show}
-        type={showNewCategoryModal.type}
-        onClose={() => setShowNewCategoryModal({ show: false, type: 'primary' })}
-        onSuccess={() => {
-          loadCategories();
-          setShowNewCategoryModal({ show: false, type: 'primary' });
-        }}
-      />
     </div>
   );
 }

@@ -1,40 +1,37 @@
 export interface TechnicalData {
-  id: string;
+  id?: string;
+  machine_id?: string;
   label: string;
   value: string;
-  isHighlight?: boolean;
+  is_highlight?: boolean;
+  created_at?: string;
 }
 
 export interface Category {
   id: string;
   name: string;
-  description: string;
-  bannerUrl: string;
-  iconUrl: string;
-  type: 'primary' | 'secondary';
-  created_at: string;
-  slug: string;
+  created_at?: string;
 }
 
-export interface Product {
+export interface Machine {
   id: string;
   name: string;
   description: string;
-  short_description?: string;
-  mainImageUrl: string;
-  categoryId: string;
-  secondaryCategoryId?: string;
-  ownerId?: string;
-  createdAt: string;
+  brand: string;
+  main_image_url: string;
+  gallery_images?: string[];
+  technical_data: TechnicalData[];
+  category_id: string;
   category?: Category;
-  secondaryCategory?: Category;
-  technical_data?: TechnicalData[];
+  owner_id: string;
+  created_at: string;
+  updated_at?: string;
 }
 
-export interface ProductImage {
-  id: string;
-  productId: string;
-  imageUrl: string;
-  isMain: boolean;
-  created_at: string;
+export interface MachineImage {
+  id?: string;
+  machine_id: string;
+  url: string;
+  is_main: boolean;
+  created_at?: string;
 }

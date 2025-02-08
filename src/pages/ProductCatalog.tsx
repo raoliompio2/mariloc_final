@@ -54,9 +54,9 @@ export function ProductCatalog() {
           setAllCategories(transformedCategories);
 
           // Verificar se há categoria na URL
-          const categoryId = searchParams.get('categories');
-          if (categoryId) {
-            const category = transformedCategories.find(cat => cat.id === categoryId);
+          const categorySlug = searchParams.get('categoria');
+          if (categorySlug) {
+            const category = transformedCategories.find(cat => cat.slug === categorySlug);
             if (category) {
               setSelectedCategory(category);
             }
@@ -241,10 +241,10 @@ export function ProductCatalog() {
             onSelectCategory={(categoryId) => {
               const category = allCategories.find(cat => cat.id === categoryId);
               setSelectedCategory(category || null);
-              // Atualizar URL
+              // Atualizar URL com o slug da categoria
               const newSearchParams = new URLSearchParams();
               if (category) {
-                newSearchParams.set('categories', category.id);
+                newSearchParams.set('categoria', category.slug);
               }
               window.history.pushState({}, '', `${window.location.pathname}${category ? '?' + newSearchParams.toString() : ''}`);
             }}

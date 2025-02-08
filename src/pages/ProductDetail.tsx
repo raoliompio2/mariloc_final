@@ -6,6 +6,7 @@ import { Navbar } from '../components/Navbar';
 import { supabase } from '../lib/supabase';
 import type { Machine, Accessory } from '../types/machine';
 import { useSystemSettings } from '../hooks/useSystemSettings';
+import { MobileQuoteBlock } from '../components/product/MobileQuoteBlock';
 
 export function ProductDetail() {
   const { slug } = useParams();
@@ -15,6 +16,29 @@ export function ProductDetail() {
   const [selectedAccessories, setSelectedAccessories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const [showMobileQuote, setShowMobileQuote] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Show on scroll up or when near bottom
+      const isScrollingUp = currentScrollY < lastScrollY;
+      const isNearBottom = 
+        window.innerHeight + window.scrollY >= 
+        document.documentElement.scrollHeight - 100;
+
+      setShowMobileQuote(isScrollingUp || isNearBottom);
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [lastScrollY]);
 
   console.log('URL params:', { slug });
 
@@ -180,8 +204,8 @@ export function ProductDetail() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-text mb-4">{error}</h1>
-            <Link to="/catalogo-de-produtos" className="text-primary hover:underline">
-              Voltar para o catálogo
+            <Link to="/" className="text-primary hover:underline">
+              Voltar para o início
             </Link>
           </div>
         </div>
@@ -196,8 +220,8 @@ export function ProductDetail() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-text mb-4">Máquina não encontrada</h1>
-            <Link to="/catalogo-de-produtos" className="text-primary hover:underline">
-              Voltar para o catálogo
+            <Link to="/" className="text-primary hover:underline">
+              Voltar para o início
             </Link>
           </div>
         </div>
@@ -229,9 +253,16 @@ export function ProductDetail() {
               </li>
               <li className="text-gray-400">/</li>
               <li>
-                <Link to="/catalogo-de-produtos" className="text-gray-500 hover:text-primary transition-colors duration-200">
-                  Catálogo de Produtos
-                </Link>
+                {machine.category && (
+                  <>
+                    <Link 
+                      to={`/catalogo-de-produtos/${machine.category.slug || ''}`} 
+                      className="text-gray-500 hover:text-primary transition-colors duration-200"
+                    >
+                      {machine.category.name}
+                    </Link>
+                  </>
+                )}
               </li>
               <li className="text-gray-400">/</li>
               <li>
@@ -367,10 +398,10 @@ export function ProductDetail() {
                   </div>
                 )}
 
-                {/* Quote Button */}
-                <div className="mt-8">
+                {/* Quote Button - Desktop Only */}
+                <div className="mt-8 hidden lg:block">
                   <Link
-                    to={`/catalogo-de-produtos/produto/${slug}/orcamento`}
+                    to={`/quote/request/${slug}`}
                     className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-green-600 text-base font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 shadow-sm"
                   >
                     <MessageSquare className="h-5 w-5" />
@@ -428,6 +459,9 @@ export function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Quote Block */}
+      <MobileQuoteBlock slug={slug} isVisible={showMobileQuote} />
     </div>
   );
 }

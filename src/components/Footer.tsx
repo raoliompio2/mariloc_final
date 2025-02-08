@@ -27,7 +27,7 @@ export function Footer() {
     >
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Coluna 1: Logo e Descrição */}
+          {/* Coluna 1: Logo */}
           <div>
             <Link to="/" className="flex items-center mb-4">
               {theme === 'dark' && systemSettings.dark_header_logo_url ? (
@@ -52,15 +52,8 @@ export function Footer() {
                     target.style.display = 'none';
                   }}
                 />
-              ) : (
-                <span className="text-2xl font-bold">
-                  Nortec
-                </span>
-              )}
+              ) : null}
             </Link>
-            <p className="mt-2 text-base">
-              Aluguel de equipamentos para construção civil em Manaus.
-            </p>
           </div>
 
           {/* Links Rápidos */}
@@ -107,8 +100,8 @@ export function Footer() {
         </div>
 
         <div className="mt-12 border-t border-opacity-10 pt-8">
-          <p className="text-center text-sm opacity-75">
-            {new Date().getFullYear()} Nortec. Todos os direitos reservados.
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {new Date().getFullYear()} Locadora. Todos os direitos reservados.
           </p>
         </div>
       </div>

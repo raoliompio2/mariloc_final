@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FeaturedLogo } from '../../services/systemSettings';
 import { supabase } from '../../lib/supabase';
-import { toast } from 'react-hot-toast';
+import { useToast } from '../../hooks/use-toast';
 
 interface FeaturedLogosProps {
   enabled: boolean;
@@ -11,6 +11,7 @@ interface FeaturedLogosProps {
 }
 
 export function FeaturedLogos({ enabled = true, logos = [], onToggle, onChange }: FeaturedLogosProps) {
+  const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
 
   const handleAddLogo = () => {
@@ -51,6 +52,10 @@ export function FeaturedLogos({ enabled = true, logos = [], onToggle, onChange }
       logo.order_index = i;
     });
     onChange(updatedLogos);
+    toast({
+      title: 'Logo Removido',
+      description: 'O logo foi removido com sucesso!'
+    });
   };
 
   const handleFileUpload = async (index: number, file: File) => {
@@ -74,9 +79,18 @@ export function FeaturedLogos({ enabled = true, logos = [], onToggle, onChange }
       const updatedLogos = [...logos];
       updatedLogos[index] = { ...logos[index], image_url: publicUrl };
       onChange(updatedLogos);
+      toast({
+        variant: 'success',
+        title: 'Logo Adicionado',
+        description: 'O logo foi adicionado com sucesso!'
+      });
     } catch (error) {
       console.error('Erro ao fazer upload:', error);
-      toast.error('Erro ao fazer upload da imagem');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: error instanceof Error ? error.message : 'Erro ao fazer upload do logo'
+      });
     } finally {
       setIsUploading(false);
     }

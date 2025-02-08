@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Package, MapPin, Calendar, MessageSquare, DollarSign, User, Clock, X, Check } from 'lucide-react';
 import { StatusBadge } from '../common/StatusBadge';
 import { Timeline } from '../common/Timeline';
+import { useToast } from '../../hooks/use-toast';
 
 interface QuoteCardProps {
   quote: {
@@ -45,6 +46,7 @@ export function QuoteCard({
   showLandlordActions = false,
   showClientActions = false,
 }: QuoteCardProps) {
+  const { toast } = useToast();
   const [price, setPrice] = useState<number>(0);
   const [response, setResponse] = useState<string>('');
   const [showResponseForm, setShowResponseForm] = useState(false);
@@ -64,7 +66,11 @@ export function QuoteCard({
 
   const handleSubmitResponse = async () => {
     if (!price || !response) {
-      alert('Por favor, preencha todos os campos');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Por favor, preencha todos os campos'
+      });
       return;
     }
 
@@ -75,7 +81,11 @@ export function QuoteCard({
       setShowResponseForm(false);
     } catch (error) {
       console.error('Error submitting response:', error);
-      alert('Erro ao enviar resposta. Por favor, tente novamente.');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao enviar resposta. Por favor, tente novamente.'
+      });
     }
   };
 

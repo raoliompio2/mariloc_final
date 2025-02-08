@@ -31,6 +31,7 @@ export function Profile() {
   const [saving, setSaving] = useState(false);
   const [savingSecurity, setSavingSecurity] = useState(false);
   const [avatar, setAvatar] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [securityError, setSecurityError] = useState('');
   const [success, setSuccess] = useState('');
@@ -44,6 +45,14 @@ export function Profile() {
   useEffect(() => {
     loadProfile();
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const loadProfile = async () => {
     try {
@@ -69,7 +78,25 @@ export function Profile() {
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      if (!allowedTypes.includes(file.type)) {
+        setError('Tipo de arquivo não permitido. Use apenas JPG, PNG ou GIF.');
+        return;
+      }
+
+      if (file.size > 2 * 1024 * 1024) {
+        setError('Arquivo muito grande. O tamanho máximo permitido é 2MB.');
+        return;
+      }
+
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+
+      const newPreviewUrl = URL.createObjectURL(file);
+      setPreviewUrl(newPreviewUrl);
       setAvatar(file);
+      setError('');
     }
   };
 
@@ -95,13 +122,40 @@ export function Profile() {
       let avatarUrl = profile.avatar_url;
 
       if (avatar) {
-        const fileExt = avatar.name.split('.').pop();
-        const fileName = `${profile.id}-${Math.random()}.${fileExt}`;
-        const filePath = `${fileName}`;
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!allowedTypes.includes(avatar.type)) {
+          throw new Error('Tipo de arquivo não permitido. Use apenas JPG, PNG ou GIF.');
+        }
+
+        if (avatar.size > 2 * 1024 * 1024) {
+          throw new Error('Arquivo muito grande. O tamanho máximo permitido é 2MB.');
+        }
+
+        const fileExt = avatar.type === 'image/jpeg' ? 'jpg' : 
+                       avatar.type === 'image/png' ? 'png' : 
+                       avatar.type === 'image/gif' ? 'gif' : 'jpg';
+                       
+        const fileName = `${profile.id}.${fileExt}`; // Nome fixo baseado no ID do usuário
+        const filePath = `avatars/${profile.role}/${fileName}`; // Organiza por papel do usuário
+
+        if (profile.avatar_url) {
+          try {
+            const oldPath = new URL(profile.avatar_url).pathname.split('/').slice(-3).join('/');
+            await supabase.storage
+              .from('avatars')
+              .remove([oldPath]);
+          } catch (err) {
+            console.error('Error removing old avatar:', err);
+          }
+        }
+
+        const fileBuffer = await avatar.arrayBuffer();
 
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(filePath, avatar);
+          .upload(filePath, fileBuffer, {
+            contentType: avatar.type
+          });
 
         if (uploadError) throw uploadError;
 
@@ -129,10 +183,10 @@ export function Profile() {
       if (updateError) throw updateError;
 
       setSuccess('Perfil atualizado com sucesso!');
-      loadProfile(); // Recarrega o perfil para mostrar as alterações
-    } catch (err) {
+      loadProfile();
+    } catch (err: any) {
       console.error('Error updating profile:', err);
-      setError('Erro ao atualizar perfil');
+      setError(err.message || 'Erro ao atualizar perfil');
     } finally {
       setSaving(false);
     }
@@ -145,7 +199,6 @@ export function Profile() {
     setSecuritySuccess('');
 
     try {
-      // Validações
       if (securityForm.newPassword !== securityForm.confirmPassword) {
         throw new Error('As senhas não coincidem');
       }
@@ -154,7 +207,6 @@ export function Profile() {
         throw new Error('A nova senha deve ter pelo menos 6 caracteres');
       }
 
-      // Verificar senha atual
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: profile?.email || '',
         password: securityForm.currentPassword
@@ -164,7 +216,6 @@ export function Profile() {
         throw new Error('Senha atual incorreta');
       }
 
-      // Atualizar senha
       const { error: updateError } = await supabase.auth.updateUser({
         password: securityForm.newPassword
       });
@@ -186,8 +237,8 @@ export function Profile() {
   };
 
   const breadcrumbs = [
-    { label: profile?.role === 'client' ? 'Painel do Cliente' : 'Painel Administrativo', 
-      path: profile?.role === 'client' ? '/client-dashboard' : '/landlord-dashboard' },
+    { label: profile?.role === 'client' ? 'Painel do Cliente' : 'Painel do Proprietário', 
+      path: profile?.role === 'client' ? '/client/dashboard' : '/landlord/dashboard' },
     { label: 'Meu Perfil' }
   ];
 
@@ -239,9 +290,9 @@ export function Profile() {
                         alt="Avatar"
                         className="w-full h-full object-cover"
                       />
-                    ) : avatar ? (
+                    ) : previewUrl ? (
                       <img
-                        src={URL.createObjectURL(avatar)}
+                        src={previewUrl}
                         alt="Avatar preview"
                         className="w-full h-full object-cover"
                       />
@@ -254,7 +305,7 @@ export function Profile() {
                   <label className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors">
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/gif"
                       onChange={handleAvatarChange}
                       className="hidden"
                     />

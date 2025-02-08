@@ -5,11 +5,12 @@ import { Timeline } from '../common/Timeline';
 
 interface RentalCardProps {
   rental: Rental;
-  onApprove: (id: string) => void;
-  onReject: (id: string) => void;
+  onApprove?: (id: string) => void;
+  onReject?: (id: string) => void;
+  showActions?: boolean;
 }
 
-export function RentalCard({ rental, onApprove, onReject }: RentalCardProps) {
+export function RentalCard({ rental, onApprove, onReject, showActions = false }: RentalCardProps) {
   const getStatusInfo = (status: Rental['status']) => {
     switch (status) {
       case 'pending':
@@ -155,7 +156,7 @@ export function RentalCard({ rental, onApprove, onReject }: RentalCardProps) {
             </div>
 
             {/* Ações */}
-            {rental.status === 'pending' && (
+            {showActions && rental.status === 'pending' && onApprove && onReject && (
               <div className="flex justify-end space-x-4 mt-6">
                 <button
                   onClick={() => onReject(rental.id)}

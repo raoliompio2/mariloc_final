@@ -5,6 +5,7 @@ import { QuoteCard } from '../components/quotes/QuoteCard';
 import { FilterBar } from '../components/common/FilterBar';
 import { supabase } from '../lib/supabase';
 import type { Quote } from '../types/quote';
+import { useToast } from '../hooks/use-toast';
 
 const filterOptions = [
   {
@@ -34,6 +35,7 @@ export function QuoteList() {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
+  const { toast } = useToast();
 
   useEffect(() => {
     loadQuotes();
@@ -88,7 +90,11 @@ export function QuoteList() {
       setError('');
     } catch (err) {
       console.error('Error loading quotes:', err);
-      setError('Erro ao carregar orçamentos');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao carregar orçamentos'
+      });
     } finally {
       setLoading(false);
     }
@@ -179,9 +185,18 @@ export function QuoteList() {
       setQuotes(updatedQuotes);
       applyFilters(searchQuery, activeFilters);
 
+      toast({
+        variant: 'success',
+        title: 'Orçamento Respondido',
+        description: 'O orçamento foi respondido com sucesso!'
+      });
     } catch (err) {
       console.error('Error responding to quote:', err);
-      alert('Erro ao responder orçamento');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao responder orçamento'
+      });
     }
   };
 
@@ -206,14 +221,23 @@ export function QuoteList() {
       setQuotes(updatedQuotes);
       applyFilters(searchQuery, activeFilters);
 
+      toast({
+        variant: 'success',
+        title: 'Orçamento Rejeitado',
+        description: 'O orçamento foi rejeitado com sucesso'
+      });
     } catch (err) {
       console.error('Error rejecting quote:', err);
-      alert('Erro ao rejeitar orçamento');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao rejeitar orçamento'
+      });
     }
   };
 
   const breadcrumbs = [
-    { label: 'Painel', path: '/landlord-dashboard' },
+    { label: 'Painel', path: '/landlord/dashboard' },
     { label: 'Orçamentos' }
   ];
 

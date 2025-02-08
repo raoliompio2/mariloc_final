@@ -52,7 +52,7 @@ export function AdminPageHeader({ title, breadcrumbs = [], action, subtitle }: A
             <ol className="flex items-center space-x-2">
               <li>
                 <button
-                  onClick={() => navigate('/landlord-dashboard')}
+                  onClick={() => navigate('/landlord/dashboard')}
                   className={`flex items-center text-${theme}-gray-500 hover:text-${theme}-primary`}
                 >
                   <Home className="h-4 w-4" />

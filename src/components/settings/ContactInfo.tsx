@@ -49,8 +49,8 @@ export function ContactInfo({
             type="email"
             value={email || ''}
             onChange={(e) => onChange('email', e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
-            placeholder="Ex: contato@nortec.com.br"
+            className="block w-full rounded-lg border-0 py-1.5 text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 bg-white dark:bg-gray-800"
+            placeholder="Ex: contato@empresa.com.br"
           />
         </div>
       </div>

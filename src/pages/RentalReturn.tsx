@@ -5,6 +5,7 @@ import { Footer } from '../components/Footer';
 import { Package, Calendar, MapPin, Clock, User, Mail, Phone, Check, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { AdminPageHeader } from '../components/AdminPageHeader';
+import { useToast } from '../hooks/use-toast';
 
 interface ReturnRequest {
   id: string;
@@ -34,6 +35,7 @@ interface ReturnRequest {
 
 export function RentalReturn() {
   const { id } = useParams();
+  const { toast } = useToast();
   const [returnRequest, setReturnRequest] = useState<ReturnRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -123,9 +125,18 @@ export function RentalReturn() {
       if (updateError) throw updateError;
 
       loadReturnRequest();
+      toast({
+        variant: 'success',
+        title: 'Devolução Aprovada',
+        description: 'A devolução foi aprovada com sucesso!'
+      });
     } catch (err) {
       console.error('Error approving return:', err);
-      alert('Erro ao aprovar devolução. Por favor, tente novamente.');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao aprovar devolução. Por favor, tente novamente.'
+      });
     } finally {
       setProcessing(false);
     }
@@ -159,9 +170,18 @@ export function RentalReturn() {
       if (rentalError) throw rentalError;
 
       loadReturnRequest();
+      toast({
+        variant: 'success',
+        title: 'Devolução Finalizada',
+        description: 'A devolução foi finalizada com sucesso!'
+      });
     } catch (err) {
       console.error('Error completing return:', err);
-      alert('Erro ao finalizar devolução. Por favor, tente novamente.');
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao finalizar devolução. Por favor, tente novamente.'
+      });
     } finally {
       setProcessing(false);
     }

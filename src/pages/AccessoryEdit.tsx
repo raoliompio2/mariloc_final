@@ -254,7 +254,7 @@ export function AccessoryEdit() {
           }]);
       }
 
-      navigate('/accessories');
+      navigate('/accessory/list');
     } catch (err) {
       console.error('Error updating accessory:', err);
       setError(err instanceof Error ? err.message : 'Erro ao atualizar acessório');
@@ -264,8 +264,8 @@ export function AccessoryEdit() {
   };
 
   const breadcrumbs = [
-    { label: 'Painel', path: '/landlord-dashboard' },
-    { label: 'Acessórios', path: '/accessories' },
+    { label: 'Painel', path: '/landlord/dashboard' },
+    { label: 'Acessórios', path: '/accessory/list' },
     { label: 'Editar Acessório' }
   ];
 
@@ -466,7 +466,7 @@ export function AccessoryEdit() {
             <div className="flex justify-end space-x-4">
               <button
                 type="button"
-                onClick={() => navigate('/accessories')}
+                onClick={() => navigate('/accessory/list')}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800"
                 disabled={loading}
               >

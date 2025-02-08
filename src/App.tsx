@@ -1,46 +1,33 @@
-import React, { useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProviderWrapper } from './components/ThemeProviderWrapper';
 import { LoadingProvider, useLoading } from './contexts/LoadingContext';
 import { Routes } from './routes';
-import { ToastContainer } from 'react-toastify';
-import { Toaster } from 'react-hot-toast';
-import { Footer } from './components/Footer';
-import 'react-toastify/dist/ReactToastify.css';
+import { Toaster } from './components/ui/toaster';
 
 function AppContent() {
-  const { stopLoading } = useLoading();
-
-  useEffect(() => {
-    // Simula o tempo de carregamento inicial
-    const timer = setTimeout(() => {
-      stopLoading();
-    }, 1500); // 1.5 segundos
-
-    return () => clearTimeout(timer);
-  }, [stopLoading]);
+  const { loading } = useLoading();
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Toaster position="top-right" />
+    <>
+      {loading && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-primary border-t-transparent"></div>
+        </div>
+      )}
       <Routes />
-      <Footer />
-    </div>
+    </>
   );
 }
 
 export function App() {
   return (
-    <HelmetProvider>
-      <BrowserRouter>
-        <ThemeProviderWrapper>
-          <LoadingProvider>
-            <AppContent />
-            <ToastContainer position="bottom-right" />
-          </LoadingProvider>
-        </ThemeProviderWrapper>
-      </BrowserRouter>
-    </HelmetProvider>
+    <BrowserRouter>
+      <ThemeProviderWrapper>
+        <LoadingProvider>
+          <AppContent />
+          <Toaster />
+        </LoadingProvider>
+      </ThemeProviderWrapper>
+    </BrowserRouter>
   );
 }

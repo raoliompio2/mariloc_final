@@ -96,8 +96,7 @@ export const getSystemSettings = async (): Promise<SystemSettings> => {
         console.log('Nenhuma configuração encontrada, usando padrão:', defaultSettings);
         return defaultSettings;
       }
-      console.error('Erro ao buscar configurações:', settingsError);
-      throw settingsError;
+      throw new Error('Erro ao buscar configurações');
     }
 
     // If we found settings, get the related data
@@ -110,8 +109,7 @@ export const getSystemSettings = async (): Promise<SystemSettings> => {
         .order('order_index');
 
       if (quickLinksError) {
-        console.error('Erro ao buscar quick links:', quickLinksError);
-        throw quickLinksError;
+        throw new Error('Erro ao buscar quick links');
       }
 
       // Get featured logos
@@ -122,8 +120,7 @@ export const getSystemSettings = async (): Promise<SystemSettings> => {
         .order('order_index');
 
       if (featuredLogosError) {
-        console.error('Erro ao buscar featured logos:', featuredLogosError);
-        throw featuredLogosError;
+        throw new Error('Erro ao buscar featured logos');
       }
 
       // Combine all data
@@ -160,8 +157,7 @@ export const updateSystemSettings = async (settings: Partial<SystemSettings>): P
       .maybeSingle();
 
     if (getError) {
-      console.error('Erro ao buscar configurações:', getError);
-      throw getError;
+      throw new Error('Erro ao buscar configurações');
     }
 
     let settingsId: string;
@@ -178,38 +174,39 @@ export const updateSystemSettings = async (settings: Partial<SystemSettings>): P
         .single();
 
       if (createError) {
-        console.error('Erro ao criar configurações:', createError);
-        throw createError;
+        throw new Error('Erro ao criar configurações');
       }
 
       settingsId = newSettings.id;
-      existingSettings = newSettings;
     } else {
       // Atualizar configurações existentes
-      settingsId = existingSettings.id;
-      const { error: updateError } = await supabase
+      const { data: updatedSettings, error: updateError } = await supabase
         .from('system_settings')
         .update(settingsToSave)
-        .eq('id', settingsId);
+        .eq('id', existingSettings.id)
+        .select()
+        .single();
 
       if (updateError) {
-        console.error('Erro ao atualizar configurações:', updateError);
-        throw updateError;
+        throw new Error('Erro ao atualizar configurações');
       }
+
+      settingsId = existingSettings.id;
     }
 
-    // Atualizar quick_links se fornecido
+    // Atualizar quick links se fornecidos
     if (quick_links) {
+      // Deletar links existentes
       const { error: deleteLinksError } = await supabase
         .from('quick_links')
         .delete()
         .eq('system_settings_id', settingsId);
 
       if (deleteLinksError) {
-        console.error('Erro ao deletar quick links:', deleteLinksError);
-        throw deleteLinksError;
+        throw new Error('Erro ao deletar quick links existentes');
       }
 
+      // Inserir novos links
       if (quick_links.length > 0) {
         const { error: insertLinksError } = await supabase
           .from('quick_links')
@@ -222,24 +219,24 @@ export const updateSystemSettings = async (settings: Partial<SystemSettings>): P
           );
 
         if (insertLinksError) {
-          console.error('Erro ao inserir quick links:', insertLinksError);
-          throw insertLinksError;
+          throw new Error('Erro ao inserir novos quick links');
         }
       }
     }
 
-    // Atualizar featured_logos se fornecido
+    // Atualizar featured logos se fornecidos
     if (featured_logos) {
+      // Deletar logos existentes
       const { error: deleteLogosError } = await supabase
         .from('featured_logos')
         .delete()
         .eq('system_settings_id', settingsId);
 
       if (deleteLogosError) {
-        console.error('Erro ao deletar featured logos:', deleteLogosError);
-        throw deleteLogosError;
+        throw new Error('Erro ao deletar featured logos existentes');
       }
 
+      // Inserir novos logos
       if (featured_logos.length > 0) {
         const { error: insertLogosError } = await supabase
           .from('featured_logos')
@@ -252,44 +249,13 @@ export const updateSystemSettings = async (settings: Partial<SystemSettings>): P
           );
 
         if (insertLogosError) {
-          console.error('Erro ao inserir featured logos:', insertLogosError);
-          throw insertLogosError;
+          throw new Error('Erro ao inserir novos featured logos');
         }
       }
     }
 
     // Buscar configurações atualizadas
-    const { data: updatedSettings, error: getUpdatedError } = await supabase
-      .from('system_settings')
-      .select('*')
-      .eq('id', settingsId)
-      .single();
-
-    if (getUpdatedError) {
-      console.error('Erro ao buscar configurações atualizadas:', getUpdatedError);
-      throw getUpdatedError;
-    }
-
-    // Buscar relacionamentos
-    const [quickLinksResult, featuredLogosResult] = await Promise.all([
-      supabase
-        .from('quick_links')
-        .select('*')
-        .eq('system_settings_id', settingsId)
-        .order('order_index'),
-      supabase
-        .from('featured_logos')
-        .select('*')
-        .eq('system_settings_id', settingsId)
-        .order('order_index')
-    ]);
-
-    // Retornar objeto completo
-    return {
-      ...updatedSettings,
-      quick_links: quickLinksResult.data || [],
-      featured_logos: featuredLogosResult.data || []
-    };
+    return await getSystemSettings();
   } catch (error) {
     console.error('Erro ao atualizar configurações:', error);
     throw error;
@@ -307,8 +273,7 @@ export const saveSystemSettings = async (settings: Partial<SystemSettings>) => {
       .single();
 
     if (fetchError && fetchError.code !== 'PGRST116') {
-      console.error('Erro ao buscar configurações:', fetchError);
-      throw fetchError;
+      throw new Error('Erro ao buscar configurações');
     }
 
     // Remover campos undefined/null
@@ -326,8 +291,7 @@ export const saveSystemSettings = async (settings: Partial<SystemSettings>) => {
         .single();
 
       if (error) {
-        console.error('Erro ao atualizar configurações:', error);
-        throw error;
+        throw new Error('Erro ao atualizar configurações');
       }
 
       return ensureArrays(data);
@@ -362,8 +326,7 @@ export const saveSystemSettings = async (settings: Partial<SystemSettings>) => {
         .single();
 
       if (error) {
-        console.error('Erro ao inserir configurações:', error);
-        throw error;
+        throw new Error('Erro ao inserir configurações');
       }
 
       return ensureArrays(data);
@@ -411,14 +374,13 @@ export const loadSystemSettings = async (): Promise<SystemSettings | null> => {
         return defaultSettings;
       }
 
-      console.error('Erro ao carregar configurações:', error);
-      return null;
+      throw new Error('Erro ao carregar configurações');
     }
 
     return ensureArrays(data);
   } catch (error) {
     console.error('Erro ao carregar configurações:', error);
-    return null;
+    throw error;
   }
 };
 
@@ -455,8 +417,7 @@ export const uploadLogo = async (file: File, type: string): Promise<string> => {
       });
 
     if (uploadError) {
-      console.error('Erro ao fazer upload do logo:', uploadError);
-      throw uploadError;
+      throw new Error('Erro ao fazer upload do logo');
     }
 
     // Obter a URL pública do arquivo
@@ -475,8 +436,7 @@ export const uploadLogo = async (file: File, type: string): Promise<string> => {
         throw new Error(`Arquivo não está acessível: ${response.status}`);
       }
     } catch (error) {
-      console.error('Erro ao verificar acesso ao arquivo:', error);
-      throw error;
+      throw new Error('Erro ao verificar acesso ao arquivo');
     }
 
     console.log('Logo enviado com sucesso:', { fileName, url: data.publicUrl });
@@ -495,28 +455,37 @@ export const updateLogo = async (file: File, type: string) => {
 };
 
 export const patchSystemSettings = async (currentSettings: SystemSettings, settings: Partial<SystemSettings>) => {
-  // Primeiro, buscar o registro existente
-  const { data: existingSettings } = await supabase
-    .from('system_settings')
-    .select('*')
-    .limit(1)
-    .single();
-
-  if (existingSettings) {
-    // Se existe, atualiza
-    const { error } = await supabase
+  try {
+    // Primeiro, buscar o registro existente
+    const { data: existingSettings } = await supabase
       .from('system_settings')
-      .update(settings)
-      .eq('id', existingSettings.id);
+      .select('*')
+      .limit(1)
+      .single();
 
-    if (error) throw error;
-  } else {
-    // Se não existe, insere
-    const { error } = await supabase
-      .from('system_settings')
-      .insert({ ...currentSettings, ...settings });
+    if (existingSettings) {
+      // Se existe, atualiza
+      const { error } = await supabase
+        .from('system_settings')
+        .update(settings)
+        .eq('id', existingSettings.id);
 
-    if (error) throw error;
+      if (error) {
+        throw new Error('Erro ao atualizar configurações');
+      }
+    } else {
+      // Se não existe, insere
+      const { error } = await supabase
+        .from('system_settings')
+        .insert({ ...currentSettings, ...settings });
+
+      if (error) {
+        throw new Error('Erro ao inserir configurações');
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao atualizar configurações:', error);
+    throw error;
   }
 };
 
