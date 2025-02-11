@@ -61,13 +61,22 @@ export function FeaturedLogos({ enabled = true, logos = [], onToggle, onChange }
   const handleFileUpload = async (index: number, file: File) => {
     try {
       setIsUploading(true);
-      const fileName = `${Date.now()}-${file.name}`;
+      
+      // Sanitize file name: remove special chars, spaces, and non-ASCII chars
+      const sanitizedName = file.name
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+        .replace(/[^a-zA-Z0-9.-]/g, '-') // Replace special chars with dash
+        .toLowerCase();
+      
+      const fileName = `${Date.now()}-${sanitizedName}`;
       const fileBuffer = await file.arrayBuffer();
       
       const { error: uploadError } = await supabase.storage
         .from('logos')
         .upload(fileName, fileBuffer, {
-          contentType: file.type
+          contentType: file.type,
+          cacheControl: '3600'
         });
 
       if (uploadError) throw uploadError;

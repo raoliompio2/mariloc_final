@@ -182,15 +182,16 @@ export function useLandlordStats() {
 
       setStats({
         todayQuotes: todayQuotes?.length || 0,
-        negotiatingQuotes: answeredQuotes?.length || 0,
+        negotiatingQuotes: negotiatingQuotes?.length || 0,
         pendingRentals: pendingRentals?.length || 0,
         activeRentals: activeRentals?.length || 0,
         activeRentalsValue: activeTotal,
         completedRentalsValue: monthTotal,
         answeredQuotesValue: answeredTotal,
-        pendingCollections: 0
+        pendingCollections: pendingRentals?.length || 0
       });
     } catch (err) {
+      console.error('Erro ao carregar estatísticas:', err);
       setError(err instanceof Error ? err : new Error('Erro ao carregar estatísticas'));
     } finally {
       setIsLoading(false);
@@ -201,5 +202,5 @@ export function useLandlordStats() {
     loadStats();
   }, []);
 
-  return { stats, isLoading, error, refresh: loadStats };
+  return { stats, isLoading, error };
 }

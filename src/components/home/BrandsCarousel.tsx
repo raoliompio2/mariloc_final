@@ -8,6 +8,22 @@ interface BrandsCarouselProps {
 
 export function BrandsCarousel({ logos }: BrandsCarouselProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
+  const [loadedImages, setLoadedImages] = React.useState<{[key: string]: boolean}>({});
+
+  const handleImageLoad = (id: string) => {
+    console.log('Image loaded:', id);
+    setLoadedImages(prev => ({ ...prev, [id]: true }));
+  };
+
+  const handleImageError = (id: string) => {
+    console.error('Error loading image:', id);
+    setLoadedImages(prev => ({ ...prev, [id]: false }));
+  };
+
+  // Debug
+  React.useEffect(() => {
+    console.log('BrandsCarousel logos:', logos);
+  }, [logos]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollRef.current) return;
@@ -39,16 +55,16 @@ export function BrandsCarousel({ logos }: BrandsCarouselProps) {
         className="overflow-x-auto scrollbar-hide"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        <div className="flex items-center space-x-16 px-12 py-8">
+        <div className="flex items-center space-x-12 px-8">
           {logos.map((brand) => (
             <div 
               key={brand.id} 
-              className="flex-shrink-0 w-48 h-24 flex items-center justify-center transition-transform duration-300 hover:scale-110"
+              className="flex-shrink-0 w-40 h-20 flex items-center justify-center transition-transform duration-300 hover:scale-105"
             >
               <img
                 src={brand.image_url}
                 alt={brand.title}
-                className="max-h-full max-w-full object-contain transition-all duration-300"
+                className="max-h-full max-w-full object-contain"
               />
             </div>
           ))}

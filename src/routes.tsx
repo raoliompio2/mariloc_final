@@ -1,36 +1,43 @@
-import React, { useEffect } from 'react';
-import { Routes as ReactRoutes, Route, useLocation } from 'react-router-dom';
-import { ProductCatalog } from './pages/ProductCatalog';
-import { Register } from './pages/Register';
-import { Login } from './pages/Login';
-import { ClientDashboard } from './pages/ClientDashboard';
-import { LandlordDashboard } from './pages/LandlordDashboard';
-import { Settings } from './pages/Settings';
-import { MachineRegister } from './pages/MachineRegister';
-import { MachineEdit } from './pages/MachineEdit';
-import { MachineList } from './pages/MachineList';
-import { CategoryList } from './pages/CategoryList';
-import { CategoryPage } from './pages/CategoryPage';
-import { ProductDetail } from './pages/ProductDetail';
-import { QuoteRequest } from './pages/QuoteRequest';
-import { AccessoryList } from './pages/AccessoryList';
-import { AccessoryRegister } from './pages/AccessoryRegister';
-import { AccessoryEdit } from './pages/AccessoryEdit';
-import { Profile } from './pages/Profile';
-import { QuoteList } from './pages/QuoteList';
-import { ClientQuotes } from './pages/ClientQuotes';
-import { RentalList } from './pages/RentalList';
-import { ClientRentals } from './pages/ClientRentals';
-import { RentalDetails } from './pages/RentalDetails';
-import { RentalReturn } from './pages/RentalReturn';
-import { CompletedReturns } from './pages/CompletedReturns';
-import { ClientReturns } from './pages/ClientReturns';
-import { NotFound } from './pages/NotFound';
-import { TestSettings } from './pages/TestSettings';
-import { useLoading } from './contexts/LoadingContext';
-import { MainLayout } from './layouts/MainLayout';
-import { AuthLayout } from './layouts/AuthLayout';
-import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import React, { useEffect } from 'react'
+import { Routes as ReactRoutes, Route, useLocation } from 'react-router-dom'
+import { ProductCatalog } from './pages/ProductCatalog'
+import { Register } from './pages/Register'
+import { Login } from './pages/Login'
+import { ClientDashboard } from './pages/ClientDashboard'
+import { LandlordDashboard } from './pages/LandlordDashboard'
+import { Settings } from './pages/Settings'
+import { MachineRegister } from './pages/MachineRegister'
+import { MachineEdit } from './pages/MachineEdit'
+import { MachineList } from './pages/MachineList'
+import { CategoryList } from './pages/CategoryList'
+import { CategoryPage } from './pages/CategoryPage'
+import { ProductDetail } from './pages/ProductDetail'
+import { QuoteRequest } from './pages/QuoteRequest'
+import { AccessoryList } from './pages/AccessoryList'
+import { AccessoryRegister } from './pages/AccessoryRegister'
+import { AccessoryEdit } from './pages/AccessoryEdit'
+import { Profile } from './pages/Profile'
+import { QuoteList } from './pages/QuoteList'
+import { ClientQuotes } from './pages/ClientQuotes'
+import { RentalList } from './pages/RentalList'
+import { ClientRentals } from './pages/ClientRentals'
+import { RentalDetails } from './pages/RentalDetails'
+import { RentalReturn } from './pages/RentalReturn'
+import { CompletedReturns } from './pages/CompletedReturns'
+import { ClientReturns } from './pages/ClientReturns'
+import { NotFound } from './pages/NotFound'
+import { TestSettings } from './pages/TestSettings'
+import Company from './pages/Company'
+import { Contact } from './pages/Contact'
+import { SAC } from './pages/SAC'
+import CompanyEdit from './pages/landlord/CompanyEdit'
+import { ContactEdit } from './pages/landlord/ContactEdit'
+import { FAQEdit } from './pages/landlord/FAQEdit'
+import { useLoading } from './contexts/LoadingContext'
+import { MainLayout } from './layouts/MainLayout'
+import { AuthLayout } from './layouts/AuthLayout'
+import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import Home from './pages/Home'
 
 export function Routes() {
   const location = useLocation();
@@ -50,7 +57,11 @@ export function Routes() {
     <ReactRoutes>
       <Route element={<MainLayout />}>
         {/* Rotas Públicas */}
-        <Route path="/" element={<ProductCatalog />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/catalogo" element={<ProductCatalog />} />
+        <Route path="/empresa" element={<Company />} />
+        <Route path="/contato" element={<Contact />} />
+        <Route path="/sac" element={<SAC />} />
         <Route path="/catalogo-de-produtos/:categorySlug" element={<CategoryPage />} />
         <Route path="/catalogo-de-produtos/produto/:slug" element={<ProductDetail />} />
         <Route path="/quote/request/:slug" element={<QuoteRequest />} />
@@ -141,6 +152,21 @@ export function Routes() {
         <Route path="/completed/returns" element={
           <ProtectedRoute requiredRole="landlord">
             <CompletedReturns />
+          </ProtectedRoute>
+        } />
+        <Route path="/landlord/empresa/editar" element={
+          <ProtectedRoute requiredRole="landlord">
+            <CompanyEdit />
+          </ProtectedRoute>
+        } />
+        <Route path="/landlord/contatos/editar" element={
+          <ProtectedRoute requiredRole="landlord">
+            <ContactEdit />
+          </ProtectedRoute>
+        } />
+        <Route path="/landlord/faq/editar" element={
+          <ProtectedRoute requiredRole="landlord">
+            <FAQEdit />
           </ProtectedRoute>
         } />
 

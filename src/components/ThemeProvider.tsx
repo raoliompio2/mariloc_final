@@ -27,7 +27,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       try {
         if (status === 'idle') {
           console.log('ThemeProvider: Carregando configurações iniciais');
-          await dispatch(fetchSystemSettings()).unwrap();
+          const result = await dispatch(fetchSystemSettings()).unwrap();
+          console.log('ThemeProvider: Configurações carregadas:', result);
         }
         setIsInitialized(true);
       } catch (error) {
@@ -41,7 +42,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Debug
   useEffect(() => {
-    console.log('ThemeProvider State:', { theme, settings, status, isInitialized });
+    console.log('ThemeProvider State:', { 
+      theme, 
+      settings, 
+      status, 
+      isInitialized,
+      featured_logos: settings?.featured_logos,
+      featured_logos_enabled: settings?.featured_logos_enabled
+    });
   }, [theme, settings, status, isInitialized]);
 
   // Aplicar variáveis CSS

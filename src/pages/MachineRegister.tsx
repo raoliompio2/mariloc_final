@@ -9,6 +9,7 @@ import { useUser } from '../hooks/useUser';
 import { useMachineForm } from '../hooks/useMachineForm';
 import { useToast } from '../hooks/use-toast';
 import type { Category } from '../types/machine';
+import { SEOChatbot } from '../components/chat/SEOChatbot';
 
 interface CategoryModalState {
   show: boolean;
@@ -81,11 +82,13 @@ const CategorySelection: React.FC<{
             required
           >
             <option value="">Selecione uma categoria</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
+            {categories
+              .filter(cat => cat.type === 'primary')
+              .map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
           </select>
           <button
             type="button"
@@ -106,11 +109,13 @@ const CategorySelection: React.FC<{
             className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
           >
             <option value="">Selecione uma categoria</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
+            {categories
+              .filter(cat => cat.type === 'secondary')
+              .map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
           </select>
           <button
             type="button"
@@ -279,6 +284,7 @@ export function MachineRegister() {
     show: false,
     type: 'primary'
   });
+  const [description, setDescription] = useState('');
 
   const {
     loading,
@@ -393,7 +399,7 @@ export function MachineRegister() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Cadastrar Nova Máquina</h1>
@@ -440,6 +446,23 @@ export function MachineRegister() {
             onAdd={addOtherData}
           />
 
+          <div className="mb-6">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+              Descrição
+            </label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={4}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+            />
+          </div>
+
+          <SEOChatbot
+            onSelectDescription={setDescription}
+          />
+
           <ImageUpload
             mainImageUrl={mainImageUrl}
             handleMainImageChange={handleMainImageChange}
@@ -473,6 +496,7 @@ export function MachineRegister() {
       
       {showNewCategoryModal.show && (
         <NewCategoryModal
+          show={showNewCategoryModal.show}
           type={showNewCategoryModal.type}
           onClose={() => setShowNewCategoryModal({ show: false, type: 'primary' })}
           onSuccess={() => {

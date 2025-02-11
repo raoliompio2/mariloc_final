@@ -4,6 +4,7 @@ import { X, Upload, Plus } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { NewCategoryModal } from '../components/modals/NewCategoryModal';
+import { SEOChatbot } from '../components/chat/SEOChatbot';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../hooks/useUser';
 import { useToast } from '../hooks/use-toast';
@@ -29,6 +30,7 @@ export function MachineEdit() {
   const [machine, setMachine] = useState<Machine | null>(null);
   const [machineName, setMachineName] = useState('');
   const [machineDescription, setMachineDescription] = useState('');
+  const [description, setDescription] = useState(machine?.description || '');
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedSecondaryCategory, setSelectedSecondaryCategory] = useState('');
@@ -108,6 +110,7 @@ export function MachineEdit() {
       setMachine(machineData);
       setMachineName(machineData.name);
       setMachineDescription(machineData.description || '');
+      setDescription(machineData.description || '');
       setSelectedCategory(machineData.category_id);
       setSelectedSecondaryCategory(machineData.secondary_category_id || '');
       setCurrentMainImageUrl(machineData.main_image_url || '');
@@ -444,7 +447,7 @@ export function MachineEdit() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="flex items-center justify-between mb-8">
@@ -493,6 +496,26 @@ export function MachineEdit() {
               </div>
             </div>
           </div>
+
+          {/* Campo de Descrição */}
+          <div className="mb-6">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+              Descrição
+            </label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={4}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+            />
+          </div>
+
+          {/* Chatbot de SEO */}
+          <SEOChatbot
+            onSelectDescription={setDescription}
+            initialKeywords={[machine?.name, machine?.category?.name].filter(Boolean)}
+          />
 
           {/* Categories */}
           <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -757,7 +780,7 @@ export function MachineEdit() {
       <Footer />
 
       <NewCategoryModal
-        isOpen={showNewCategoryModal.show}
+        show={showNewCategoryModal.show}
         type={showNewCategoryModal.type}
         onClose={() => setShowNewCategoryModal({ show: false, type: 'primary' })}
         onSuccess={() => {

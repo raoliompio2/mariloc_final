@@ -6,6 +6,7 @@ interface User {
   role: 'client' | 'landlord' | 'admin';
   name?: string;
   email?: string;
+  avatar_url?: string;
 }
 
 export function useAuth() {
@@ -62,7 +63,7 @@ export function useAuth() {
       console.log('Loading profile for user:', userId);
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('id, role, name, email')
+        .select('id, role, name, email, avatar_url')
         .eq('id', userId)
         .single();
 

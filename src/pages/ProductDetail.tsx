@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import type { Machine, Accessory } from '../types/machine';
 import { useSystemSettings } from '../hooks/useSystemSettings';
 import { MobileQuoteBlock } from '../components/product/MobileQuoteBlock';
+import { useChatContext } from '../contexts/ChatContext';
 
 export function ProductDetail() {
   const { slug } = useParams();
@@ -18,6 +19,7 @@ export function ProductDetail() {
   const [error, setError] = useState<string>('');
   const [showMobileQuote, setShowMobileQuote] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const { setProductContext, setIsOpen } = useChatContext();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -57,6 +59,19 @@ export function ProductDetail() {
       setLoading(false);
     }
   }, [slug]);
+
+  useEffect(() => {
+    if (machine) {
+      // Atualiza o contexto do chat quando o produto é carregado
+      setProductContext({
+        name: machine.name,
+        description: machine.description,
+        category: machine.category?.name
+      });
+      // Abre o chat automaticamente
+      setIsOpen(true);
+    }
+  }, [machine, setProductContext, setIsOpen]);
 
   const loadMachineByName = async (productName: string) => {
     try {

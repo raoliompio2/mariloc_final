@@ -146,11 +146,11 @@ export function NotFound() {
 
     function drawGround(ctx: CanvasRenderingContext2D) {
       // Chão principal
-      ctx.fillStyle = '#292524';
+      ctx.fillStyle = theme === 'dark' ? '#1F2937' : '#E5E7EB';
       ctx.fillRect(0, state.ground, canvas.width, 50);
       
       // Textura do chão
-      ctx.fillStyle = '#44403C';
+      ctx.fillStyle = theme === 'dark' ? '#374151' : '#D1D5DB';
       const gridSize = 20;
       const offset = (state.animationFrame * state.gameSpeed) % gridSize;
       
@@ -256,8 +256,8 @@ export function NotFound() {
       
       // Desenha o fundo
       const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      gradient.addColorStop(0, theme === 'dark' ? '#1F2937' : '#F3F4F6');
-      gradient.addColorStop(1, theme === 'dark' ? '#111827' : '#E5E7EB');
+      gradient.addColorStop(0, theme === 'dark' ? '#111827' : '#F9FAFB');
+      gradient.addColorStop(1, theme === 'dark' ? '#1F2937' : '#F3F4F6');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -266,10 +266,10 @@ export function NotFound() {
       state.obstacles.forEach(obstacle => drawObstacle(ctx, obstacle));
 
       // Desenha a pontuação
-      ctx.fillStyle = theme === 'dark' ? '#F3F4F6' : '#1F2937';
-      ctx.font = '20px monospace';
-      ctx.fillText(`Pontos: ${score}`, 10, 30);
-      ctx.fillText(`Recorde: ${highScore}`, canvas.width - 150, 30);
+      ctx.fillStyle = theme === 'dark' ? '#9CA3AF' : '#6B7280';
+      ctx.font = '16px system-ui';
+      ctx.fillText(`Pontos: ${score}`, 10, 25);
+      ctx.fillText(`Recorde: ${highScore}`, canvas.width - 140, 25);
 
       updateGame();
       animationFrameId = requestAnimationFrame(gameLoop);
@@ -383,35 +383,33 @@ export function NotFound() {
 
           {/* Coluna da direita: Jogo */}
           <div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-              <canvas
-                ref={canvasRef}
-                width={600}
-                height={300}
-                className="bg-gray-100 dark:bg-gray-700 rounded-lg mb-2"
-              />
-              
-              <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                Pressione ESPAÇO ou SETA PARA CIMA para pular | Toque na tela em dispositivos móveis
-              </p>
-              
-              {gameOver && (
-                <div className="text-center mt-4">
-                  <p className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    Fim de Jogo!
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    Pontuação: {score} | Recorde: {highScore}
-                  </p>
-                  <button
-                    onClick={startGame}
-                    className="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
-                  >
-                    Jogar Novamente
-                  </button>
-                </div>
-              )}
-            </div>
+            <canvas
+              ref={canvasRef}
+              width={600}
+              height={300}
+              className="rounded-lg mb-2 w-full"
+            />
+            
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center opacity-75">
+              Pressione ESPAÇO ou SETA PARA CIMA para pular | Toque na tela em dispositivos móveis
+            </p>
+            
+            {gameOver && (
+              <div className="text-center mt-4">
+                <p className="text-lg text-gray-700 dark:text-gray-300 mb-2">
+                  Fim de Jogo!
+                </p>
+                <p className="text-gray-500 dark:text-gray-400 mb-4">
+                  Pontuação: {score} | Recorde: {highScore}
+                </p>
+                <button
+                  onClick={startGame}
+                  className="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                >
+                  Jogar Novamente
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </main>
