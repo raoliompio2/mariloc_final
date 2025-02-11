@@ -238,6 +238,7 @@ export const updateSystemSettings = async (settings: Partial<SystemSettings>): P
 
       // Inserir novos logos
       if (featured_logos.length > 0) {
+<<<<<<< HEAD
         // Remover campos que não devem ser inseridos e adicionar system_settings_id
         const logosToInsert = featured_logos.map((logo, index) => {
           const { id, created_at, updated_at, ...rest } = logo;
@@ -254,6 +255,19 @@ export const updateSystemSettings = async (settings: Partial<SystemSettings>): P
 
         if (insertLogosError) {
           console.error('Erro ao inserir logos:', insertLogosError);
+=======
+        const { error: insertLogosError } = await supabase
+          .from('featured_logos')
+          .insert(
+            featured_logos.map((logo, index) => ({
+              ...logo,
+              system_settings_id: settingsId,
+              order_index: index
+            }))
+          );
+
+        if (insertLogosError) {
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
           throw new Error('Erro ao inserir novos featured logos');
         }
       }

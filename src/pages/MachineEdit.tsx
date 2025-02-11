@@ -4,7 +4,10 @@ import { X, Upload, Plus } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { NewCategoryModal } from '../components/modals/NewCategoryModal';
+<<<<<<< HEAD
 import { SEOChatbot } from '../components/chat/SEOChatbot';
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
 import { supabase } from '../lib/supabase';
 import { useUser } from '../hooks/useUser';
 import { useToast } from '../hooks/use-toast';
@@ -30,7 +33,10 @@ export function MachineEdit() {
   const [machine, setMachine] = useState<Machine | null>(null);
   const [machineName, setMachineName] = useState('');
   const [machineDescription, setMachineDescription] = useState('');
+<<<<<<< HEAD
   const [description, setDescription] = useState(machine?.description || '');
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedSecondaryCategory, setSelectedSecondaryCategory] = useState('');
@@ -110,7 +116,10 @@ export function MachineEdit() {
       setMachine(machineData);
       setMachineName(machineData.name);
       setMachineDescription(machineData.description || '');
+<<<<<<< HEAD
       setDescription(machineData.description || '');
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
       setSelectedCategory(machineData.category_id);
       setSelectedSecondaryCategory(machineData.secondary_category_id || '');
       setCurrentMainImageUrl(machineData.main_image_url || '');
@@ -447,7 +456,11 @@ export function MachineEdit() {
   }
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen bg-background">
+=======
+    <div className="min-h-screen bg-gray-100">
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
       <Navbar />
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="flex items-center justify-between mb-8">
@@ -497,6 +510,7 @@ export function MachineEdit() {
             </div>
           </div>
 
+<<<<<<< HEAD
           {/* Campo de Descrição */}
           <div className="mb-6">
             <label htmlFor="description" className="block text-sm font-medium text-gray-700">
@@ -517,6 +531,8 @@ export function MachineEdit() {
             initialKeywords={[machine?.name, machine?.category?.name].filter(Boolean)}
           />
 
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
           {/* Categories */}
           <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Categorias</h2>
@@ -780,7 +796,11 @@ export function MachineEdit() {
       <Footer />
 
       <NewCategoryModal
+<<<<<<< HEAD
         show={showNewCategoryModal.show}
+=======
+        isOpen={showNewCategoryModal.show}
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
         type={showNewCategoryModal.type}
         onClose={() => setShowNewCategoryModal({ show: false, type: 'primary' })}
         onSuccess={() => {

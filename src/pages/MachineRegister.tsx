@@ -9,7 +9,10 @@ import { useUser } from '../hooks/useUser';
 import { useMachineForm } from '../hooks/useMachineForm';
 import { useToast } from '../hooks/use-toast';
 import type { Category } from '../types/machine';
+<<<<<<< HEAD
 import { SEOChatbot } from '../components/chat/SEOChatbot';
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
 
 interface CategoryModalState {
   show: boolean;
@@ -82,6 +85,7 @@ const CategorySelection: React.FC<{
             required
           >
             <option value="">Selecione uma categoria</option>
+<<<<<<< HEAD
             {categories
               .filter(cat => cat.type === 'primary')
               .map((category) => (
@@ -89,6 +93,13 @@ const CategorySelection: React.FC<{
                   {category.name}
                 </option>
               ))}
+=======
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
           </select>
           <button
             type="button"
@@ -109,6 +120,7 @@ const CategorySelection: React.FC<{
             className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
           >
             <option value="">Selecione uma categoria</option>
+<<<<<<< HEAD
             {categories
               .filter(cat => cat.type === 'secondary')
               .map((category) => (
@@ -116,6 +128,13 @@ const CategorySelection: React.FC<{
                   {category.name}
                 </option>
               ))}
+=======
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
           </select>
           <button
             type="button"
@@ -284,7 +303,10 @@ export function MachineRegister() {
     show: false,
     type: 'primary'
   });
+<<<<<<< HEAD
   const [description, setDescription] = useState('');
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
 
   const {
     loading,
@@ -399,7 +421,11 @@ export function MachineRegister() {
   }
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen bg-background">
+=======
+    <div className="min-h-screen bg-gray-100">
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
       <Navbar />
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Cadastrar Nova Máquina</h1>
@@ -446,6 +472,7 @@ export function MachineRegister() {
             onAdd={addOtherData}
           />
 
+<<<<<<< HEAD
           <div className="mb-6">
             <label htmlFor="description" className="block text-sm font-medium text-gray-700">
               Descrição
@@ -463,6 +490,8 @@ export function MachineRegister() {
             onSelectDescription={setDescription}
           />
 
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
           <ImageUpload
             mainImageUrl={mainImageUrl}
             handleMainImageChange={handleMainImageChange}
@@ -496,7 +525,10 @@ export function MachineRegister() {
       
       {showNewCategoryModal.show && (
         <NewCategoryModal
+<<<<<<< HEAD
           show={showNewCategoryModal.show}
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
           type={showNewCategoryModal.type}
           onClose={() => setShowNewCategoryModal({ show: false, type: 'primary' })}
           onSuccess={() => {

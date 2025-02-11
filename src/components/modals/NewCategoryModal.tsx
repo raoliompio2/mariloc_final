@@ -5,6 +5,7 @@ import { useToast } from '../../hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+<<<<<<< HEAD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 interface NewCategoryModalProps {
@@ -47,6 +48,20 @@ export function NewCategoryModal({ show, type, onClose, onSuccess }: NewCategory
     }
   };
 
+=======
+
+interface NewCategoryModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: (categoryId: string) => void;
+}
+
+export function NewCategoryModal({ isOpen, onClose, onSuccess }: NewCategoryModalProps) {
+  const { toast } = useToast();
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -59,6 +74,7 @@ export function NewCategoryModal({ show, type, onClose, onSuccess }: NewCategory
       return;
     }
 
+<<<<<<< HEAD
     if (type === 'secondary' && !parentCategory) {
       toast({
         variant: 'destructive',
@@ -68,6 +84,8 @@ export function NewCategoryModal({ show, type, onClose, onSuccess }: NewCategory
       return;
     }
 
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
     try {
       setLoading(true);
 
@@ -76,7 +94,10 @@ export function NewCategoryModal({ show, type, onClose, onSuccess }: NewCategory
         .from('categories')
         .select('id')
         .ilike('name', name.trim())
+<<<<<<< HEAD
         .eq('parent_id', type === 'secondary' ? parentCategory : null)
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
         .maybeSingle();
 
       if (existing) {
@@ -93,8 +114,11 @@ export function NewCategoryModal({ show, type, onClose, onSuccess }: NewCategory
         .from('categories')
         .insert([{ 
           name: name.trim(),
+<<<<<<< HEAD
           parent_id: type === 'secondary' ? parentCategory : null,
           type: type, // Adicionando o tipo da categoria
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
           created_at: new Date().toISOString()
         }])
         .select()
@@ -108,10 +132,16 @@ export function NewCategoryModal({ show, type, onClose, onSuccess }: NewCategory
           title: 'Categoria Criada',
           description: 'A categoria foi criada com sucesso!'
         });
+<<<<<<< HEAD
         onSuccess();
         onClose();
         setName('');
         setParentCategory('');
+=======
+        onSuccess(data.id);
+        onClose();
+        setName('');
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
       }
     } catch (error) {
       console.error('Erro ao criar categoria:', error);
@@ -126,6 +156,7 @@ export function NewCategoryModal({ show, type, onClose, onSuccess }: NewCategory
   };
 
   return (
+<<<<<<< HEAD
     <Dialog open={show} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <div className="relative">
@@ -133,10 +164,20 @@ export function NewCategoryModal({ show, type, onClose, onSuccess }: NewCategory
             <DialogTitle>Nova Categoria {type === 'secondary' ? 'Secundária' : 'Principal'}</DialogTitle>
             <DialogDescription>
               Adicione uma nova categoria {type === 'secondary' ? 'secundária' : 'principal'} para suas máquinas
+=======
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <div className="relative">
+          <DialogHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10 pb-4 mb-4 border-b">
+            <DialogTitle>Nova Categoria</DialogTitle>
+            <DialogDescription>
+              Adicione uma nova categoria para suas máquinas
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+<<<<<<< HEAD
             {type === 'secondary' && (
               <div className="space-y-2">
                 <label 
@@ -160,6 +201,8 @@ export function NewCategoryModal({ show, type, onClose, onSuccess }: NewCategory
               </div>
             )}
 
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
             <div className="space-y-2">
               <label 
                 htmlFor="name" 
@@ -171,7 +214,11 @@ export function NewCategoryModal({ show, type, onClose, onSuccess }: NewCategory
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+<<<<<<< HEAD
                 placeholder={type === 'secondary' ? "Ex: Betoneira 400L" : "Ex: Betoneiras"}
+=======
+                placeholder="Ex: Betoneiras"
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
                 className="w-full"
               />
             </div>

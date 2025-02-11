@@ -61,6 +61,7 @@ export function FeaturedLogos({ enabled = true, logos = [], onToggle, onChange }
   const handleFileUpload = async (index: number, file: File) => {
     try {
       setIsUploading(true);
+<<<<<<< HEAD
       
       // Sanitize file name: remove special chars, spaces, and non-ASCII chars
       const sanitizedName = file.name
@@ -70,13 +71,20 @@ export function FeaturedLogos({ enabled = true, logos = [], onToggle, onChange }
         .toLowerCase();
       
       const fileName = `${Date.now()}-${sanitizedName}`;
+=======
+      const fileName = `${Date.now()}-${file.name}`;
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
       const fileBuffer = await file.arrayBuffer();
       
       const { error: uploadError } = await supabase.storage
         .from('logos')
         .upload(fileName, fileBuffer, {
+<<<<<<< HEAD
           contentType: file.type,
           cacheControl: '3600'
+=======
+          contentType: file.type
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
         });
 
       if (uploadError) throw uploadError;

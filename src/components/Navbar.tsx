@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+<<<<<<< HEAD
 import { Menu, LogOut, Sun, Moon, Package, User, LayoutDashboard, X, ChevronDown, Grid, ChevronLeft, ChevronRight, Search, Loader2 } from 'lucide-react';
+=======
+import { Menu, LogOut, Sun, Moon, Package, User, LayoutDashboard, X, ChevronDown, Grid, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
 import { supabase } from '../lib/supabase';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
@@ -9,7 +13,10 @@ import { fetchCategories } from '../store/categorySlice';
 import ProductSearchCard from './ProductSearchCard';
 import { UserMenu } from './navbar/UserMenu';
 import { MobileMenu } from './navbar/MobileMenu';
+<<<<<<< HEAD
 import { useAuth } from '../hooks/useAuth';
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
 import cn from 'classnames';
 
 const NavbarDropdown = lazy(() => import('./NavbarDropdown'));
@@ -22,7 +29,10 @@ export function Navbar({ className }: NavbarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
+<<<<<<< HEAD
   const { user, loading: authLoading, signOut } = useAuth();
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
   const theme = useSelector((state: RootState) => state.theme.theme);
   const { categories, status: categoriesStatus } = useSelector((state: RootState) => state.categories);
   const systemSettings = useSelector((state: RootState) => state.theme.systemSettings) || {
@@ -33,14 +43,28 @@ export function Navbar({ className }: NavbarProps) {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+<<<<<<< HEAD
+=======
+  const [user, setUser] = useState<any>(null);
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
   const [popularTags, setPopularTags] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [filteredCategories, setFilteredCategories] = useState<any[]>([]);
+<<<<<<< HEAD
+=======
+  const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
   const [currentSlide, setCurrentSlide] = useState(0);
   const itemsPerSlide = 6;
   const menuRef = useRef<HTMLDivElement>(null);
 
+<<<<<<< HEAD
+=======
+  console.log('Current searchTerm:', searchTerm); // Debug
+  console.log('Current filteredProducts:', filteredProducts); // Debug
+
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
   // Carregar categorias apenas se ainda não foram carregadas
   useEffect(() => {
     if (categoriesStatus === 'idle') {
@@ -49,6 +73,10 @@ export function Navbar({ className }: NavbarProps) {
   }, [categoriesStatus, dispatch]);
 
   useEffect(() => {
+<<<<<<< HEAD
+=======
+    loadUserProfile();
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
     dispatch(fetchSystemSettings());
   }, [dispatch]);
 
@@ -73,6 +101,66 @@ export function Navbar({ className }: NavbarProps) {
     };
   }, [showCategories]);
 
+<<<<<<< HEAD
+=======
+  const loadUserProfile = async () => {
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      
+      if (authUser) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+
+        setUser(profile);
+        setStatus('authenticated');
+      } else {
+        setStatus('unauthenticated');
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+      setStatus('unauthenticated');
+    }
+  };
+
+  useEffect(() => {
+    const fetchPopularTags = async () => {
+      try {
+        const { data: productsData, error: productsError } = await supabase
+          .from('products')
+          .select('tags')
+          .not('tags', 'is', null)
+          .limit(100); // Limitar a busca para melhor performance
+
+        if (productsError) throw productsError;
+
+        const tagCounts = new Map<string, number>();
+        productsData?.forEach(product => {
+          if (Array.isArray(product.tags)) {
+            product.tags.forEach((tag: string) => {
+              tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+            });
+          }
+        });
+
+        const sortedTags = Array.from(tagCounts.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 4)
+          .map(([tag]) => tag);
+
+        setPopularTags(sortedTags);
+      } catch (error) {
+        console.error('Error fetching popular tags:', error);
+      }
+    };
+
+    fetchPopularTags();
+  }, []); // Executar apenas uma vez na montagem do componente
+
+  // Atualizar categorias filtradas quando mudar a busca
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
   useEffect(() => {
     const filtered = categories.filter(category =>
       category.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -111,7 +199,11 @@ export function Navbar({ className }: NavbarProps) {
           categories: machine.category || machine.secondary_category || { name: 'Sem categoria' }
         }));
 
+<<<<<<< HEAD
         console.log('Transformed search results:', transformedData);
+=======
+        console.log('Transformed search results:', transformedData); // Debug
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
         setFilteredProducts(transformedData);
       } catch (error) {
         console.error('Erro ao buscar produtos:', error);
@@ -122,6 +214,7 @@ export function Navbar({ className }: NavbarProps) {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
+<<<<<<< HEAD
   useEffect(() => {
     const fetchPopularTags = async () => {
       try {
@@ -186,6 +279,33 @@ export function Navbar({ className }: NavbarProps) {
 
   const toggleTheme = () => {
     dispatch(setTheme(theme === 'dark' ? 'light' : 'dark'));
+=======
+  const handleLogout = async () => {
+    try {
+      // Faz logout no Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      // Limpa o estado do usuário
+      setUser(null);
+      setStatus('unauthenticated');
+      setShowDropdown(false);
+
+      // Redireciona para a home
+      navigate('/', { replace: true });
+
+      // Recarrega a página para limpar qualquer estado persistente
+      window.location.reload();
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      // TODO: Adicionar toast/notificação de erro
+    }
+  };
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    dispatch(setTheme(newTheme));
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
   };
 
   return (
@@ -295,7 +415,30 @@ export function Navbar({ className }: NavbarProps) {
               )}
             </button>
 
+<<<<<<< HEAD
             {renderAuthSection()}
+=======
+            {user && (
+              <span 
+                className="hidden md:block text-lg font-medium"
+                style={{ 
+                  color: theme === 'dark' 
+                    ? systemSettings.dark_header_text_color 
+                    : systemSettings.light_header_text_color 
+                }}
+              >
+                Bem vindo, {user.name?.split(' ')[0]}
+              </span>
+            )}
+
+            {/* Substituindo o menu antigo pelo UserMenu */}
+            <UserMenu 
+              user={user}
+              showDropdown={showDropdown}
+              setShowDropdown={setShowDropdown}
+              handleLogout={handleLogout}
+            />
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
           </div>
         </div>
       </div>

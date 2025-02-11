@@ -8,6 +8,7 @@ interface BrandsCarouselProps {
 
 export function BrandsCarousel({ logos }: BrandsCarouselProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
+<<<<<<< HEAD
   const [loadedImages, setLoadedImages] = React.useState<{[key: string]: boolean}>({});
 
   const handleImageLoad = (id: string) => {
@@ -24,6 +25,8 @@ export function BrandsCarousel({ logos }: BrandsCarouselProps) {
   React.useEffect(() => {
     console.log('BrandsCarousel logos:', logos);
   }, [logos]);
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
 
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollRef.current) return;
@@ -55,16 +58,28 @@ export function BrandsCarousel({ logos }: BrandsCarouselProps) {
         className="overflow-x-auto scrollbar-hide"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
+<<<<<<< HEAD
         <div className="flex items-center space-x-12 px-8">
           {logos.map((brand) => (
             <div 
               key={brand.id} 
               className="flex-shrink-0 w-40 h-20 flex items-center justify-center transition-transform duration-300 hover:scale-105"
+=======
+        <div className="flex items-center space-x-16 px-12 py-8">
+          {logos.map((brand) => (
+            <div 
+              key={brand.id} 
+              className="flex-shrink-0 w-48 h-24 flex items-center justify-center transition-transform duration-300 hover:scale-110"
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
             >
               <img
                 src={brand.image_url}
                 alt={brand.title}
+<<<<<<< HEAD
                 className="max-h-full max-w-full object-contain"
+=======
+                className="max-h-full max-w-full object-contain transition-all duration-300"
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
               />
             </div>
           ))}

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useEffect } from 'react'
 import { Routes as ReactRoutes, Route, useLocation } from 'react-router-dom'
 import { ProductCatalog } from './pages/ProductCatalog'
@@ -38,6 +39,41 @@ import { MainLayout } from './layouts/MainLayout'
 import { AuthLayout } from './layouts/AuthLayout'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import Home from './pages/Home'
+=======
+import React, { useEffect } from 'react';
+import { Routes as ReactRoutes, Route, useLocation } from 'react-router-dom';
+import { ProductCatalog } from './pages/ProductCatalog';
+import { Register } from './pages/Register';
+import { Login } from './pages/Login';
+import { ClientDashboard } from './pages/ClientDashboard';
+import { LandlordDashboard } from './pages/LandlordDashboard';
+import { Settings } from './pages/Settings';
+import { MachineRegister } from './pages/MachineRegister';
+import { MachineEdit } from './pages/MachineEdit';
+import { MachineList } from './pages/MachineList';
+import { CategoryList } from './pages/CategoryList';
+import { CategoryPage } from './pages/CategoryPage';
+import { ProductDetail } from './pages/ProductDetail';
+import { QuoteRequest } from './pages/QuoteRequest';
+import { AccessoryList } from './pages/AccessoryList';
+import { AccessoryRegister } from './pages/AccessoryRegister';
+import { AccessoryEdit } from './pages/AccessoryEdit';
+import { Profile } from './pages/Profile';
+import { QuoteList } from './pages/QuoteList';
+import { ClientQuotes } from './pages/ClientQuotes';
+import { RentalList } from './pages/RentalList';
+import { ClientRentals } from './pages/ClientRentals';
+import { RentalDetails } from './pages/RentalDetails';
+import { RentalReturn } from './pages/RentalReturn';
+import { CompletedReturns } from './pages/CompletedReturns';
+import { ClientReturns } from './pages/ClientReturns';
+import { NotFound } from './pages/NotFound';
+import { TestSettings } from './pages/TestSettings';
+import { useLoading } from './contexts/LoadingContext';
+import { MainLayout } from './layouts/MainLayout';
+import { AuthLayout } from './layouts/AuthLayout';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
 
 export function Routes() {
   const location = useLocation();
@@ -57,11 +93,15 @@ export function Routes() {
     <ReactRoutes>
       <Route element={<MainLayout />}>
         {/* Rotas Públicas */}
+<<<<<<< HEAD
         <Route path="/" element={<Home />} />
         <Route path="/catalogo" element={<ProductCatalog />} />
         <Route path="/empresa" element={<Company />} />
         <Route path="/contato" element={<Contact />} />
         <Route path="/sac" element={<SAC />} />
+=======
+        <Route path="/" element={<ProductCatalog />} />
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
         <Route path="/catalogo-de-produtos/:categorySlug" element={<CategoryPage />} />
         <Route path="/catalogo-de-produtos/produto/:slug" element={<ProductDetail />} />
         <Route path="/quote/request/:slug" element={<QuoteRequest />} />
@@ -154,6 +194,7 @@ export function Routes() {
             <CompletedReturns />
           </ProtectedRoute>
         } />
+<<<<<<< HEAD
         <Route path="/landlord/empresa/editar" element={
           <ProtectedRoute requiredRole="landlord">
             <CompanyEdit />
@@ -169,6 +210,8 @@ export function Routes() {
             <FAQEdit />
           </ProtectedRoute>
         } />
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
 
         {/* Rotas que precisam apenas de autenticação */}
         <Route path="/settings" element={

@@ -7,7 +7,10 @@ import { supabase } from '../lib/supabase';
 import type { Machine, Accessory } from '../types/machine';
 import { useSystemSettings } from '../hooks/useSystemSettings';
 import { MobileQuoteBlock } from '../components/product/MobileQuoteBlock';
+<<<<<<< HEAD
 import { useChatContext } from '../contexts/ChatContext';
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
 
 export function ProductDetail() {
   const { slug } = useParams();
@@ -19,7 +22,10 @@ export function ProductDetail() {
   const [error, setError] = useState<string>('');
   const [showMobileQuote, setShowMobileQuote] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+<<<<<<< HEAD
   const { setProductContext, setIsOpen } = useChatContext();
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
 
   useEffect(() => {
     const handleScroll = () => {
@@ -60,6 +66,7 @@ export function ProductDetail() {
     }
   }, [slug]);
 
+<<<<<<< HEAD
   useEffect(() => {
     if (machine) {
       // Atualiza o contexto do chat quando o produto é carregado
@@ -73,6 +80,8 @@ export function ProductDetail() {
     }
   }, [machine, setProductContext, setIsOpen]);
 
+=======
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
   const loadMachineByName = async (productName: string) => {
     try {
       console.log('Buscando máquina com nome:', productName);

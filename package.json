@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+<<<<<<< HEAD
     "@editorjs/editorjs": "^2.30.8",
     "@editorjs/header": "^2.8.8",
     "@editorjs/image": "^2.10.2",
@@ -33,11 +34,21 @@
     "@types/uuid": "^10.0.0",
     "axios": "^1.7.9",
     "chart.js": "^4.4.7",
+=======
+    "@radix-ui/react-alert-dialog": "^1.1.6",
+    "@radix-ui/react-dialog": "^1.1.5",
+    "@radix-ui/react-toast": "^1.2.6",
+    "@reduxjs/toolkit": "^2.5.1",
+    "@supabase/supabase-js": "^2.39.7",
+    "@types/js-cookie": "^3.0.6",
+    "axios": "^1.7.9",
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.0.6",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.344.0",
+<<<<<<< HEAD
     "openai": "^4.28.0",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.3.0",
@@ -56,6 +67,18 @@
     "tailwind-merge": "^3.0.1",
     "uuid": "^11.0.5",
     "zod": "^3.24.1",
+=======
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-helmet-async": "^2.0.4",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^6.22.2",
+    "react-slick": "^0.30.3",
+    "recharts": "^2.15.1",
+    "slick-carousel": "^1.8.1",
+    "supabase": "^2.9.6",
+    "tailwind-merge": "^3.0.1",
+>>>>>>> d8ec9daea160d7b61a92eea80aabbc97adf1aa76
     "zustand": "^4.5.1"
   },
   "devDependencies": {
